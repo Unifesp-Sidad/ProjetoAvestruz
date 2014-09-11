@@ -1,44 +1,417 @@
-<!DOCTYPE html>
-<!--
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-     KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
--->
+<!doctype html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="format-detection" content="telephone=no" />
-        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-        <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <title>Hello World</title>
-    </head>
-    <body>
-        <div class="app">
-            <h1>Apache Cordova</h1>
-            <div id="deviceready" class="blink">
-                <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready</p>
+<head>
+    <meta charset="UTF-8" />
+    <title>APP Avestruz</title>
+    <!-- <link rel="stylesheet" href="themes/css/jqtouch.min.css" data-jqt-theme>-->
+    <link rel="stylesheet" href="themes/css/apple.min.css" data-jqt-theme>
+    <link rel="stylesheet" href="css/customization.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <!-- Either, (1) Zepto:  Un-comment these 2 lines (order matters)  
+        <script src="lib/zepto/zepto.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="src/jqt.min.js" type="text/javascript" charset="utf-8"></script>-->
+        <!-- Or,     (2) jQuery: Un-comment these 3 lines (order matters)  -->
+        <script src="lib/jquery/jquery-1.7.min.js" type="application/x-javascript" charset="utf-8"></script> 
+        <script src="src/jqt.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="src/jqtouch-jquery.min.js" type="application/x-javascript" charset="utf-8"></script> 
+        <script src="extensions/jqt.themeswitcher.min.js" type="application/x-javascript" charset="utf-8"></script>
+        <script src="extensions/jqt.actionsheet.min.js" type="application/x-javascript" charset="utf-8"></script>
+        <script src="extensions/jqt.menusheet.min.js" type="application/x-javascript" charset="utf-8"></script>
+
+
+        <script type="text/javascript" charset="utf-8">
+            var jQT = new $.jQT({
+                icon : 'jqtouch.png',
+                icon4 : 'jqtouch4.png',
+                addGlossToIcon : false,
+                startupScreen : 'jqt_startup.png',
+                statusBar : 'black-translucent',
+                preloadImages : []
+            });
+
+            // Some sample Javascript functions:
+            $(function() {
+
+                // Show a swipe event on swipe test
+                $('#swipeme').swipe(function(evt, data) {
+                    var details = !data ? '' : '<strong>' + data.direction + '/' + data.deltaX + ':' + data.deltaY + '</strong>!';
+                    $(this).html('You swiped ' + details);
+                    $(this).parent().after('<li>swiped!</li>')
+                });
+
+                $('#tapme').tap(function() {
+                    $(this).parent().after('<li>tapped!</li>')
+                });
+
+                $('a[target="_blank"]').bind('click', function() {
+                    if (confirm('This link opens in a new window.')) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+                // Page animation callback events
+                $('#pageevents').bind('pageAnimationStart', function(e, info) {
+                    $(this).find('.info').append('Started animating ' + info.direction + '&hellip;  And the link ' + 'had this custom data: ' + $(this).data('referrer').data('custom') + '<br>');
+                }).bind('pageAnimationEnd', function(e, info) {
+                    $(this).find('.info').append('Finished animating ' + info.direction + '.<br><br>');
+
+                });
+
+                // Page animations end with AJAX callback event, example 1 (load remote HTML only first time)
+                $('#callback').bind('pageAnimationEnd', function(e, info) {
+
+                    // Make sure the data hasn't already been loaded (we'll set 'loaded' to true a couple lines further down)
+                    if (!$(this).data('loaded')) {
+
+                        // Append a placeholder in case the remote HTML takes its sweet time making it back
+                        // Then, overwrite the "Loading" placeholder text with the remote HTML
+                        $(this).append($('<div>Loading</div>').load('ajax.html .info', function() {
+                            // Set the 'loaded' var to true so we know not to reload
+                            // the HTML next time the #callback div animation ends
+                            $(this).parent().data('loaded', true);
+                        }));
+                    }
+                });
+                // Orientation callback event
+                $('#jqt').bind('turn', function(e, data) {
+                    $('#orient').html('Orientation: ' + data.orientation);
+                });
+
+            });
+</script>
+<style type="text/css" media="screen">
+    #jqt.fullscreen #home .info {
+        display: none;
+    }
+    div#jqt #about {
+        padding: 100px 10px 40px;
+        text-shadow: rgba(0, 0, 0, 0.3) 0px -1px 0;
+        color: #999;
+        font-size: 13px;
+        text-align: center;
+        background: #161618;
+    }
+    div#jqt #about p {
+        margin-bottom: 8px;
+    }
+    div#jqt #about a {
+        color: #fff;
+        font-weight: bold;
+        text-decoration: none;
+    }
+</style>
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/function.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/jquery.validate.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/additional-methods.min.js"></script>
+</head>
+    
+    <body onLoad="onBodyLoad();">
+    <div id="jqt" class="">
+        <!-- template -->
+            <!--<div id="ID" >
+            <div class="toolbar">
+            <h1>jQTouch</h1>
+            <a class="button slideup" id="infoButton" href="#about">About</a>
             </div>
+            <div class="scroll">
+            CONTEUDO AQUI...
+            </div>
+            <div class="info">
+            <p>Add this page to your home screen <br>for a richer experience.</p>
+            </div>
+        </div>-->
+        <!-- fim template -->
+
+
+        <!--tela login
+        <div id="home" class="current">
+
+            <div class="formLogin">
+
+                <h2>PROJETO AVESTRUZ</h2>
+                <form class="scroll">
+                    <ul class="edit rounded">
+                        <li>
+                            <input type="text"  id="username" name="username" placeholder="Username" />
+                        </li>
+                        <li>
+                            <input type="password" name="password" placeholder="Password" id="password" />
+                        </li>
+                    </ul>
+                </form>
+
+                <div style="margin-left: 27%;" class="scroll">
+                    <input id="loginButton" type="button" onClick="userLogin();"  class="cam-btn" value="Conectar" />
+                </div>
+            </div>
+
+            <p class="cadastrar-home">
+                Não é usuário? <br/>
+                <a href="#cadastro" >Cadastre-se</a> agora mesmo!
+            </p>
         </div>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
-        <script type="text/javascript">
-            app.initialize();
-        </script>
-    </body>
-</html>
+        fim tela login-->
+
+
+
+
+
+
+
+        <!-- pagina inicial -->
+        <div id="pag-inicial">
+            <div class="toolbar" class="current">
+                <h1>Home</h1>
+                <!--<a href="#" class="back">Voltar</a>-->
+            </div>
+
+            <div class="scroll">
+
+                <ul id="photoList" class="lista-fotos" >
+                        <li class="arrow" >
+                        <a href="index.html#foto-1">
+                        <div class="thumb">
+                        <img src="img/ref2.jpg" alt="lanche">
+                        </div>
+                        <div>
+                        <h2>Cuscuz</h2>
+                        <p class="comment truncate">
+                        Dessa vez resolvi pegar um salgado mais leve, parei com coxinha!
+                        </p>
+                        </div>
+                        </a>
+                    </li>
+
+                    <li class="arrow" >
+                        <a href="index.html#foto-2">
+                        <div class="thumb">
+                        <img src="img/ref3.jpg" alt="lanche">
+                        </div>
+                        <div>
+                        <h2>Big Mac</h2>
+                        <p class="comment truncate">
+                        Exagerei este fim de semana!
+                        </p>
+                        </div>
+                        </a>
+                    </li>
+</ul>
+
+
+            </div>
+
+            <div class="info">
+                <a href="#">
+                    <div class="btn-home active-btn"><img src="img/home.png">
+                    </div></a>
+                    <a href="#">
+                        <div class="enviar-foto"><img src="img/camera.png">
+                        </div></a>
+                        <a href="#">
+                            <div class="ir-perfil"><img src="img/profile.png">
+                            </div></a>
+
+                        </div>
+                    </div>
+                    <!-- fim pagina inicial -->
+
+
+
+                                    <div id="foto-1">
+                        <div class="toolbar">
+                            <h1>Foto</h1>
+                            <a href="#pag-inicial" class="back-btn">Voltar</a>
+                        </div>
+                        <div class="scroll">
+                            <div class="pagina-foto">
+                                <img src="img/ref2.jpg" alt="">
+                                <div class="inner-content">
+                                    <div class="estrelas-aumentada">
+                                        <img src="img/star_full.png" alt="star">
+                                        <img src="img/star_full.png" alt="star">
+                                        <img src="img/star_full.png" alt="star">
+                                        <img src="img/star_half.png" alt="star">
+                                        <img src="img/star_empty.png" alt="star">
+                                    </div>  
+                                    <h3>Cuscuz</h3>
+
+                                    <p>
+                                        29/08/2014.<br>Dessa vez resolvi pegar um salgado mais leve, parei com coxinha!
+                                    </p>
+                                    <h4>Comentários</h4>
+                                    <p>
+                                        <span class="author">Dr. Avestruz:</span>
+                                        Está melhorando bastante, poderia acrescentar mais soja da próxima vez.
+                                    </p>
+                                    
+                                    <p>
+                                        <span class="author">Eu:</span>
+                                        Vou fazer um esforço extra, odeio soja! Grr
+                                    </p>
+
+
+                                </div>
+                            </div>
+                        </div>
+</div>
+
+
+<div id="foto-2">
+                        <div class="toolbar">
+                            <h1>Foto</h1>
+                            <a href="#pag-inicial" class="back-btn">Voltar</a>
+                        </div>
+                        <div class="scroll">
+                            <div class="pagina-foto">
+                                <img src="img/ref3.jpg" alt="">
+                                <div class="inner-content">
+                                    <div class="estrelas-aumentada">
+                                        <img src="img/star_half.png" alt="star">
+                                        <img src="img/star_empty.png" alt="star">
+                                        <img src="img/star_empty.png" alt="star">
+                                        <img src="img/star_empty.png" alt="star">
+                                        <img src="img/star_empty.png" alt="star">
+                                    </div>  
+                                    <h3>Big Mac</h3>
+
+                                    <p>
+                                        31/08/2014.<br>Exagerei este fim de semana!
+                                    </p>
+                                    <h4>Comentários</h4>
+                                    <p>
+                                        <span class="author">Dr. Avestruz:</span>
+                                        Totalmente fora da dieta. Um pouco mais de foco.
+                                    </p>
+                                    
+                                    <p>
+                                        <span class="author">Eu:</span>
+                                        Ok!
+                                    </p>
+
+
+                                </div>
+                            </div>
+                        </div>
+</div>
+
+
+
+
+                    <!-- inicio da pagina do perfil-->
+        <div id="perfil">
+                <div class="toolbar">
+                    <h1>Perfil</h1>
+                    <!--<a href="#" class="back">Voltar</a>-->
+                        </div>
+                        <div class="scroll">
+                            <div class="inner-content">
+                                <div class="full-content">
+                                    <!--Conteúdo da página PERFIL-->
+                                    <img src="img/perfil.jpg" class="foto-perfil" />
+                                    <p id="loggedUsername" class="nome-usuario">Usuário</p>
+                                    <p class="logout"><a href="#" onClick="logout();">Desconectar</a></p>
+                                </div>
+                                </div>
+                        </div>
+
+                        <div class="info">
+
+                        </div>
+                    </div>
+                     <!--fim da pagina do perfil-->
+
+             <!--Início da página da camera-->
+            <div id="camera">
+                    <div class="toolbar">
+                        <h1>Enviar Foto</h1>
+                    <!--<a href="#" class="back">Voltar</a>-->
+                    </div>
+                    <div class="scroll">
+                
+                    <form id="photoForm" method="post" action="">
+
+                    <br>
+                              
+                        <div class="float-left">    
+                        <input type="button" class="cam-btn" value="Tirar Foto" onClick="takePhoto();" />
+                    </div>
+                          
+                          <div class="float-right">                              
+                          <input type="button" class="cam-btn" value="Importar" onClick="importPhoto();"/>
+                              </div>
+                            <br><br><br>
+                            <ul class="rounded">
+                              <div id="imageContainer" align="center"></div>
+                      </ul>
+
+                            
+                            <ul class="edit rounded">
+                            
+                                
+                                
+                            <li>
+                                <input type="text"  id="photoTitle" name="photoTitle" placeholder="Título" />
+                            </li>
+                            <li>
+                                <input type="text" name="photoDesciption" name="photoDesciption" placeholder="Descrição" id="photoDesciption" />
+                            </li>
+                    
+                            </ul>
+                            <div style="margin-top:1em;">
+                                        
+                                        <div align="center">
+                                          <input id="sendPhoto" type="submit" class="cam-btn" value="Enviar"/>
+                                          </div>
+                                        
+                                        <p class="cadastrar-home cancelar-camera">
+                Mudou de idéia? 
+                <a href="#pag-inicial" onClick="cancelPhoto();">Cancelar</a>. 
+            </p><br>
+                                        <!--<input id="cancelPhoto" type="button" class="whiteButton" value="Cancel" onClick="cancelPhoto();" />-->
+                      </div>
+                      </form>
+
+            </div>
+
+                <div class="info">
+
+                </div>
+
+            </div>
+            <!--fim da pagina da camera-->
+
+        </body>
+
+<script>
+
+                var string = ''+
+                '<div class="btn-home"><a href="#pag-inicial" class="link-menu link-home dissolve" >&nbsp; </a></div>'+
+
+                '<div class="enviar-foto"><a href="#camera" class="link-menu link-camera dissolve" >&nbsp;</a></div>'+
+
+                '<div class="ir-perfil"><a href="#perfil" class="link-menu link-perfil dissolve" >&nbsp;</a></div>  ';
+                var string2 = '<a href="#camera" class="link-menu link-home" >link</a>';
+                //console.log(string);
+                $('.info').html(string);
+                
+                
+                document.querySelector('#pag-inicial .btn-home').className += ' active-btn';
+                
+                document.querySelector('#camera .enviar-foto').className += ' active-btn';
+                
+                document.querySelector('#perfil .ir-perfil').className += ' active-btn';
+                //variavel2[0].className += ' active-btn';
+                
+            </script>
+            <script>
+                if (window.navigator.standalone) {
+                    $("meta[name='apple-mobile-web-app-status-bar-style']").remove();
+                }
+            </script>
+
+
+        </html>
