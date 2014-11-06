@@ -1,0 +1,270 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>nu3</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+<!-- Importação de JS -->
+        <script src="lib/jquery-1.8.2.min.js"></script>
+        <script src="js/storage/memory-store.js"></script>  
+        <script src="jquerymobile/jquery.mobile-1.4.4.js"></script>
+        <script src="js/nativedroid.script.js"></script>
+        <script type="text/javascript" charset="utf-8" src="js/apicamera.js"></script>
+        <script type="text/javascript" src="cordova.js"></script>
+
+<!-- Importação de CSS -->
+        <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.4.css">
+        <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.css">
+        <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.light.css">
+        <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.color.yellow.css">
+        <link rel="stylesheet" href="css/nativedroid/font-awesome.min.css">
+        
+        <!--<link rel="stylesheet" href="themes/css/apple.min.css" data-jqt-theme>
+    	<link rel="stylesheet" href="css/customization.css"> -->
+
+<style>
+.ui-btn-active{color: #fff !important;background: #FFBD21 !important;}
+</style>
+
+        <title>NU3 Project</title>
+
+</head>
+<body onLoad="onBodyLoad();">
+
+<script id="login-tpl" type="text/x-handlebars-template">
+<div id="pag-login">
+     <div class="toolbar" class="current">
+		<h1> nu3 Login </h1>
+	 </div>
+	<div class="formLogin">
+		<form class="scroll">
+			<ul class="edit rounded">
+				<li>
+					<input type="mail" name="mail" placeholder="Email" id="mail" />
+				</li>
+				<li>
+					<input type="password" name="password" placeholder="Password" id="password" />
+				</li>
+			</ul>
+		</form>
+
+		<div style="margin-left: 27%;" class="scroll">
+			<input id="loginButton" type="button" onClick="login()"  class="cam-btn" value="Conectar" />
+		</div>
+	</div>
+	
+	<div class="formCadastro">
+		<form class="scroll">
+			<ul class="edit rounded">
+				<li>
+					<input type="text"  id="rusername" name="rusername" placeholder="Username" />
+				</li>
+				<li>
+					<input type="mail" name="rmail" placeholder="Email" id="rmail" />
+				</li>
+				<li>
+					<input type="password" name="rpassword" placeholder="Password" id="rpassword" />
+				</li>
+			</ul>
+		</form>
+
+		<div style="margin-left: 27%;" class="scroll">
+			<input id="cadastroButton" type="button" onClick="criaUsuario()"  class="cam-btn" value="Cadastrar" />
+		</div>
+		<div id="result"> </div>
+	</div>
+
+	<p class="cadastrar-home">
+		Não é usuário? <br/>
+		<a href="#cadastro" >Cadastre-se</a> agora mesmo!
+	</p>
+        
+</div>
+</script>
+
+<script id="home-tpl" type="text/x-handlebars-template">
+<div data-role="page" id="home" data-theme="b">
+<h1> debugg </h1>
+	 <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
+        <ul data-role="listview">
+            <li><a onClick="loadHome()">Home</a></li>
+            <li><a onClick="loadPerfilPage()">Perfil</a></li>
+            <li><a onClick="loadSobre()">Sobre</a></li>
+            <li><a href="#">Sair</a></li>
+        </ul>
+    </div>
+	
+     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+            <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+            <h1>Home</h1>
+     </div>
+		
+	<div role="main" class="ui-content">
+        <!-- LISTA DA TIMELINE -->
+		{{#if this.feed}}
+        <ul data-role="listview">
+			{{#each this.feed}}
+			
+            <li><a onclick="showDetails({{index}})"><img src="{{photo_uri}}" alt="{{photo_label}}">
+                <h2><strong>{{title}}</strong></h2>
+                <p>{{description}} </p>
+            </a></li>
+			
+			{{/each}}
+        </ul>
+		{{else}}
+			<h2><strong>Sem coletas ainda...</strong></h2>
+		{{/if}}
+        <!-- /LISTA DA TIMELINE -->
+		<!-- FOOTER -->
+        <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#home" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-clock-o'></i></a></li>
+                    <li><a href="#camera" onClick="capturePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
+                </ul>
+            </div>
+        </div>
+		<!-- /FOOTER -->		
+</div>
+</script>
+
+
+<script id="detail-tpl" type="text/x-handlebars-template">
+<div id="pag-inicial">
+     <div class="toolbar" class="current">
+		<h1>nu3</h1>
+	 </div>
+	<div class="scroll">
+		 <div class="pagina-foto">
+				<img src="{{photo_uri}}" alt="">
+				<div class="inner-content">
+					 <div class="estrelas-aumentada">
+						 <img src="img/star_full.png" alt="star">
+						 <img src="img/star_full.png" alt="star">
+						 <img src="img/star_full.png" alt="star">
+						 <img src="img/star_half.png" alt="star">
+						 <img src="img/star_empty.png" alt="star">
+					 </div>  
+					 <h3>{{title}}</h3>
+					 <p>
+						{{data}}<br>{{description}}
+					 </p>
+					<p>
+					<input type="text" name="comentario" placeholder="Escreva um comentário..." id="comentarioText" />
+					<p class="logout"><a href="#" onClick="criaComentario({{index}});">Comentar</a></p>
+					</p>
+					<h4>Comentários</h4>
+					{{#each this.comments}}
+					<p>
+						{{dataEnvio}} 
+						<span class="author" id="{{idComentario}}">{{nomeUsuario}}</span>
+						{{texto}}
+					</p>
+					{{/each}}
+				 </div>
+			</div>
+	</div>
+	<div class="info">
+		<a href="#" onClick="loadHome()">
+        	<div class="btn-home"><img src="img/home.png"></div>
+		</a>
+        <a href="#" onClick="loadPhotoPage()">
+        	<div class="enviar-foto"><img src="img/camera.png"></div>
+		</a>
+        <a href="#" onClick="loadPerfilPage()">
+			<div class="ir-perfil"><img src="img/profile.png"></div>
+		</a>
+	</div>
+</div>
+	
+</script>
+<script id="perfil-tpl" type="text/x-handlebars-template">
+<div id="perfil">
+	<div class="toolbar">
+		<h1>Perfil</h1>
+		<a href="#" class="back">Voltar</a>
+	</div>
+	<div class="scroll">
+		<div class="inner-content">
+			<div class="full-content">
+				<img src="img/perfil.jpg" class="foto-perfil" />
+				<p id="loggedUsername" class="nome-usuario">Usuário</p>
+				<p class="logout"><a href="#" onClick="logout();">Desconectar</a></p>
+				<p class="logout"><a href="#" onClick="clearCache();">Limpar Cache</a></p>
+			</div>
+			</div>
+	</div>	
+	<div class="info">
+		<a href="#" onClick="loadHome()">
+        	<div class="btn-home"><img src="img/home.png"></div>
+		</a>
+        <a href="#" onClick="loadPhotoPage()">
+        	<div class="enviar-foto"><img src="img/camera.png"></div>
+		</a>
+        <a href="#" onClick="loadPerfilPage()">
+			<div class="ir-perfil active-btn"><img src="img/profile.png"></div>
+		</a>
+	</div>
+</div>
+	
+</script> 
+<script id="photo-tpl" type="text/x-handlebars-template">
+<div id="camera">
+	<div class="toolbar">
+		<h1>Enviar Foto</h1>
+		<a href="#" class="back">Voltar</a>
+	</div>
+	<div class="scroll">
+		<form id="photoForm" method="post" action="">
+			<br>   
+			<div class="float-left">    
+				<input type="button" class="cam-btn" value="Tirar Foto" onClick="takePhoto();" />
+			</div>
+			<div class="float-right">                              
+				<input type="button" class="cam-btn" value="Importar" onClick="manipulaImagem();"/>
+			</div>
+			<br><br><br>
+			<ul class="rounded">
+				<div id="imageContainer" align="center"></div>
+				<div id="hiddenBase64" style="display: none"></div>
+			</ul>
+			<ul class="edit rounded">	
+				<li>
+					<input type="text"  id="photoTitle" name="photoTitle" placeholder="Título" />
+				</li>
+				<li>
+					<input type="text" name="photoDesciption" name="photoDesciption" placeholder="Descrição" id="photoDesciption" />
+				</li>
+			</ul>
+			<div style="margin-top:1em;">
+				<div align="center">
+					<input id="sendPhoto" type="submit" class="cam-btn" value="Enviar" onClick="criaImagem()"/>
+				</div>
+				
+				<!--<input id="cancelPhoto" type="button" class="whiteButton" value="Cancel" onClick="cancelPhoto();" />-->
+			</div>
+		</form>
+	</div>
+	<div class="info">
+		<a href="#" onClick="loadHome()">
+        	<div class="btn-home"><img src="img/home.png"></div>
+		</a>
+        <a href="#" onClick="loadPhotoPage()">
+        	<div class="enviar-foto active-btn"><img src="img/camera.png"></div>
+		</a>
+        <a href="#" onClick="loadPerfilPage()">
+			<div class="ir-perfil"><img src="img/profile.png"></div>
+		</a>
+	</div>
+</div>
+	
+</script>                
+                    
+<script src="lib/handlebars.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
