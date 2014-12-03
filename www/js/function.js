@@ -228,7 +228,9 @@ function isOnline(){
 			allowEdit : false,
 			encodingType : Camera.EncodingType.JPEG,
 			sourceType: Camera.PictureSourceType.CAMERA,
-			saveToPhotoAlbum:true
+			saveToPhotoAlbum:true,
+			targetWidth: 400,
+			targetHeight: 400
 		});
 	}
 

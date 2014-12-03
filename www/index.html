@@ -7,17 +7,17 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <!--<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />-->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=no" />
         <script type="text/javascript" charset="utf-8"></script>
 
 <!-- Importação de JS -->
         <script src="js/jquery-1.11.1.min.js"></script>
         <script src="jquerymobile/jquery.mobile-1.4.4.js"></script>
         <script src="js/nativedroid.script.js"></script>
-        <script type="text/javascript" charset="utf-8" src="js/apicamera.js"></script>
         <script src="js/storage/memory-store.js"></script>  
         <script type="text/javascript" src="cordova.js"></script>
         <script src="lib/handlebars.js"></script>
+		<script src="js/date.js"></script>
 		<script src="js/main.js"></script>
 
 <!-- Importação de CSS -->
@@ -26,37 +26,33 @@
         <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.light.css">
         <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.color.yellow.css">
         <link rel="stylesheet" href="css/nativedroid/font-awesome.min.css">
+        <link rel="stylesheet" href="css/index.css">
+
+
 
 
 <!-- Aguardando Phonegap carregar -->
 <script>
-
-        document.addEventListener("deviceready", onDeviceReady, false);
-
-<!-- -->
-
+    document.addEventListener("deviceready", onDeviceReady, false);
+	function onDeviceReady() {
+	
+			// Native loading spinner
+			if (window.spinnerplugin) {
+				$.extend($.mobile, {
+					loading: function() {
+						// Show/hide spinner
+						var arg = arguments ? arguments[0] : '';
+						if (arg == 'show') spinnerplugin.show({'overlay':true});
+						else if (arg == 'hide') spinnerplugin.hide();           
+		
+						// Compatibility with jQM 1.4
+						return { loader: function() { } }
+					}
+				});
+			}
+	}
 </script>
 
-<!--Scripts em JS -->
-<script>
-function onDeviceReady() {
-    // Native loading spinner
-    if (window.spinnerplugin) {
-        $.extend($.mobile, {
-            loading: function() {
-                // Show/hide spinner
-                var arg = arguments ? arguments[0] : '';
-                if (arg == 'show') spinnerplugin.show({'overlay':true});
-                else if (arg == 'hide') spinnerplugin.hide();           
-
-                // Compatibility with jQM 1.4
-                return { loader: function() { } }
-            }
-        }); 
-    }
-}
-
-</script>
 
 <style>
 .ui-btn-active{color: #fff !important;background: #FFBD21 !important;}
@@ -88,14 +84,15 @@ function onDeviceReady() {
 </div>
 -->
 
-<div data-role="page" id="home" data-theme="b">
+<div data-role="page" id="home" data-theme="b" data-cache="never" data-transition="slide">
     <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
             <ul data-role="listview">
-                <li><a href="#home">Home</a></li>
                 <li><a href="#profile">Perfil</a></li>
                 <li><a href="#sobre">Sobre</a></li>
                 <li><a onClick="logout();">Sair</a></li>
             </ul>
+            <br>
+            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
      </div>
       <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
             <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
@@ -103,9 +100,17 @@ function onDeviceReady() {
       </div>
 	<div role="main" class="ui-content">
 		<script id="home-tpl" type="text/x-handlebars-template">
-                <!-- LISTA DA TIMELINE -->
+                <!--// LISTA DA TIMELINE -->
+				<div id="hiddenDayInfo" style="display: none"> {{begginDay}}</div>
 				 {{#if this.hasFeed}}
 					 {{#each this.feed}}
+					 	{{#if this.firstPhotoOfTheWeek}}
+							<hr class="prettyline">
+							 <center>
+							 <h3> Semana: {{firstPhotoOfTheWeek}} </h3>
+							 </center>
+							 <hr class="prettyline">
+						{{/if}}
 					<li><a data-parm="{{index}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}" alt="{{photo_label}}">
 					<h2><strong>{{title}}</strong></h2>
 					{{#if this.ultimoComentario}}
@@ -115,11 +120,19 @@ function onDeviceReady() {
 					{{/if}}
 				</a></li>
 					{{/each}}
+					<div id="loading" align="center" style="display:none">
+						<p>Contatando o servidor...</p>
+						<img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+					</div>
+					<center>
+					<input data-icon="plus" data-iconpos="top" class="button-style-1" type="button" onClick="loadMoreFeed()" value="Carregar mais..." />
+					</center>
            		{{else}}
-					<li><h2><strong>Sem coletas ainda...</strong></h2></li>
+					<li><h2><strong>Sem coletas nessa semana...</strong></h2></li>
 				{{/if}}
-                <!-- /LISTA DA TIMELINE -->
+                <!--// /LISTA DA TIMELINE -->
         </script>
+        
         <ul data-role="listview" id="feed-data">
         </ul>
     </div>
@@ -127,8 +140,8 @@ function onDeviceReady() {
             <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
                 <div data-role="navbar">
                     <ul>
-                        <li><a href="#home" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-clock-o'></i></a></li>
-                        <li><a href="#camera" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
+                        <li><a href="#home" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-home'></i></a></li>
+                        <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                     </ul>
                 </div>
             </div>
@@ -136,15 +149,16 @@ function onDeviceReady() {
 </div>
 
 <!-- TELA DETALHES -->
-<div data-role="page" id="detalhes" data-theme="b">
+<div data-role="page" id="detalhes" data-theme="b" data-cache="never" data-direction="reverse">
 
     <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
         <ul data-role="listview">
-            <li><a href="#home">Home</a></li>
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
         </ul>
+            <br>
+            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
@@ -154,47 +168,65 @@ function onDeviceReady() {
 
     <div role="main" class="ui-content">
 		<div id="data-index"></div>
-        <script id="detail-tpl" type="text/x-handlebars-template">	
-			<img src="data:image/png;base64,{{base64}}" alt="{{title}}">
+        <script id="detail-tpl" type="text/x-handlebars-template">
+        <div align="center">
+			<img width="80%" src="data:image/png;base64,{{base64}}" alt="{{title}}">
+        </div>
 			<div id="hiddenID" style="display: none">{{id}}</div>
 			<div class="inner-content">
-					 <div class="estrelas-aumentada">
+					 <div class="estrelas-aumentada" align="center">
 					 	{{#each this.stars}}
 						 <img src="img/star_full.png" alt="star" width="10px" height="10px">
 						 {{/each}}
 						 {{#each this.starsEmpty}}
 						 <img src="img/star_empty.png" alt="star" width="10px" height="10px">
 						 {{/each}}
-					 </div>  
+					 </div>
+                     <div style="text-align: center;">
 					 <strong>{{title}}</strong>
+                     </div>
 					 <p>
-						Descrição:<br>{{description}}
-					 </p>
-					<p>
-					<input type="text" name="comentario" placeholder="Escreva um comentário..." id="comentarioText" />
-					<p class="logout"><a href="#" onClick="criaComentario();">Comentar</a></p>
+						<label class="data-label"> Enviado no dia {{date}} </label>
 					</p>
-					<h4>Comentários</h4>
+					 <hr class="prettyline">
+                     <div style="margin: 0px 10px;">
+					 
+					 <p>
+						<strong>Descrição:</strong><br>{{description}}
+					 </p>
+					<hr class="prettyline">
+					<h4><strong>Comentários</strong></h4>
 					<div id="commentContainer">
 					{{#each this.comments}}
 					<p>
 						<small>{{dataEnvio}}</small> 
-						<span class="author" id="{{idComentario}}"><strong>{{nomeUsuario}} >> </strong></span>
+						<span class="author" id="{{idComentario}}"><strong>{{nomeUsuario}}: </strong></span>
 						{{texto}}
 					</p>
 					{{/each}}
-					</div>
+					
+                    </div>
+                    </div>
+                    
 			</div>
-		</script>
+            
+        </script>
+        
         <ul data-role="listview" id="details-data">
         </ul>
-	 </div>
+        	<div id="comment-field">
+                    <label for="comentarioText" class="ui-hidden-accessible">Comentario:</label>
+                    <textarea name="comentario" id="comentarioText" placeholder="Escreva um comentário" class="comment-textbox"></textarea>
+                    <input class="button-style-1" type="button" onClick="criaComentario()" value="Enviar" />
+           </div>
+        </div>
+	 <!--</div>-->
     <!-- FOOTER -->
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-clock-o'></i></a></li>
-                    <li><a href="#camera" onClick="capturePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
         </div>
@@ -203,24 +235,48 @@ function onDeviceReady() {
 </div>
 <!-- /TELA DETALHES -->
 
+<!-- TELA LOGIN/CADASTRO -->
+<div data-role="page" id="login" data-theme="b" data-cache="never">
 
-<div data-role="page" id="login" data-theme="b">
-	<div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
-            <h1>Autenticação</h1>
-      </div>
-      
-		<div class="formLogin" data-role="fieldcontain"> 
+      <div role="main" class="ui-content">
+
+
+        <div align="center">
+        <img src="img/logonu3.png" width="300px" height="200px"/>
+    </div>
+		<div class="formLogin" data-role="fieldcontain">
+            <div style="align: center;">
              <label for="mail" class="ui-hidden-accessible">Mail:</label>
-             <input type="text" name="mail" placeholder="Email" id="mail" />
+             <input type="text" name="mail" placeholder="Email" id="mail"/>
                   
              <label for="password" class="ui-hidden-accessible">Password:</label>
-             <input type="password" name="password" placeholder="Password" id="password" />
-     
-            <div style="margin-left: 27%;">
-                <input data-role="button" type="button" onClick="login()"  class="cam-btn" value="Conectar" />
+             <input type="password" name="password" placeholder="Password" id="password"/>
+             </div>
+             <br>
+			<div id="loading" align="center" style="display:none">
+				<p>Contatando o servidor...</p>
+				<img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
 			</div>
-        </div>
+        
+            <div style="text-align:center; background-color: #FFBD21;">
+                <input data-role="button" type="button" onClick="login()" value="Conectar" />
+			</div>
+            </div>
+        
+        <p align="center">Não é usuário? <a href="#cadastro">Cadastre-se</a>.</p>
+
+    </div>
+</div>
+
+<div data-role="page" id="cadastro" data-theme="b">
+    <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+        <a href="#login"><i class="fa fa-arrow-left"></i></a>
+            <h1>Cadastro</h1>
+      </div>
+
+      <div role="main" class="ui-content">
         <div class="formCadastro" data-role="fieldcontain">
+            <div align="center">
 			
             <label for="rusername" class="ui-hidden-accessible">Username:</label>
 			<input type="text"  id="rusername" name="rusername" placeholder="Username" />
@@ -232,27 +288,36 @@ function onDeviceReady() {
 			<input type="password" name="rpassword" placeholder="Password" id="rpassword" />
             <label for="rpassword2" class="ui-hidden-accessible">Password Confirm:</label>
 			<input type="password" name="rpassword2" placeholder="Password Confirm" id="rpassword2" />
+        </div>
+        	<div id="loading" align="center" style="display:none">
+						<p>Contatando o servidor...</p>
+						<img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+			</div>
 		
-            <div style="margin-left: 27%;">
-                <input data-role="button" type="button" onClick="criaUsuario()"  class="cam-btn" value="Cadastrar" />
+            <div style="text-align:center; background-color: #FFBD21;">
+                <input data-role="button" type="button" onClick="criaUsuario()" value="Cadastrar" />
             </div>
 			<div id="result"> </div>
 		</div>
+    </div>
 </div>
 
+<!--/TELA LOGIN/CADASTRO -->
+
 <!-- TELA SOBRE -->
-<div data-role="page" id="sobre" data-theme="b">
+<div data-role="page" id="sobre" data-theme="b" data-cache="never">
     <script>
          $('.myPanel:visible').panel('open');
     </script>
 
     <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
         <ul data-role="listview">
-            <li><a href="#home">Home</a></li>
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
         </ul>
+            <br>
+            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
         <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
@@ -270,8 +335,8 @@ function onDeviceReady() {
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-clock-o'></i></a></li>
-                    <li><a href="#camera" onClick="capturePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
         </div>
@@ -281,18 +346,19 @@ function onDeviceReady() {
 <!-- /TELA SOBRE -->
 
 <!-- TELA CAMERA -->
-<div data-role="page" id="camera" data-theme="b">
+<div data-role="page" id="camera" data-theme="b" data-cache="never">
     <script>
          $('.myPanel:visible').panel('open');
     </script>
 
     <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
         <ul data-role="listview">
-            <li><a href="#home">Home</a></li>
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
         </ul>
+            <br>
+            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
         <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
@@ -301,19 +367,17 @@ function onDeviceReady() {
         </div>
 
     <div role="main" class="ui-content">
-        
-			<div id="hiddenBase64" style="display: none"></div>
-            
+        	<div id="hiddenBase64" style="display: none"></div>
+            <div id="imageContainer"></div>
             <br>
             <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
-            <textarea name="descricao" id="photoDesciption" rows="2" placeholder="Descrição"></textarea>
+            <textarea name="descricao" id="photoDesciption" rows="2" placeholder="Descrição" style="resize: none;"></textarea>
             <br>
-            <button data-role="button" onClick="criaImagem();">Enviar</button>
+            <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
             <br>
             <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
             
-            <br>
-            <div id="imageContainer" align="center"></div>
+            
 
     </div>
 
@@ -321,8 +385,8 @@ function onDeviceReady() {
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-clock-o'></i></a></li>
-                    <li><a href="#camera" onClick="takePhoto();" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-camera'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#" onClick="takePhoto();" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
         </div>
@@ -331,18 +395,19 @@ function onDeviceReady() {
 <!-- /TELA CAMERA -->
 
 <!-- TELA PERFIL -->
-<div data-role="page" id="profile" data-theme="b">
+<div data-role="page" id="profile" data-theme="b" data-cache="never">
     <script>
          $('.myPanel:visible').panel('open');
     </script>
 
     <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
         <ul data-role="listview">
-            <li><a href="#home">Home</a></li>
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
         </ul>
+            <br>
+            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
         <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
@@ -376,8 +441,8 @@ function onDeviceReady() {
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-clock-o'></i></a></li>
-                    <li><a href="#camera" onClick="capturePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
         </div>
@@ -385,7 +450,31 @@ function onDeviceReady() {
 
 </div>
 <!-- /TELA PERFIL -->
-
+<!-- TELA ERRO -->
+<div data-role="page" id="error" data-cache="never">
+    <div data-role="content" role="main" class="ui-content">
+        <div align="center">
+           <img src="img/logonu3.png" width="150px" height="100px"/>
+        </div>
+		<div class="formLogin" data-role="fieldcontain">
+        <hr class="prettyline">
+        <script id="error-tpl" type="text/x-handlebars-template">
+             <div class="error-content">
+                 <span>{{error}}</span>
+                 <p>{{msg}}</p>
+             </div>
+             <br>
+			 <hr class="prettyline">
+             <div>
+			 	<a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
+			 </div>
+		 </script>
+         <ul data-role="listview" id="error-data">  
+         </ul>
+         </div>
+    </div>
+</div>
+<!-- /TELA ERRO -->
 
 
    </body>

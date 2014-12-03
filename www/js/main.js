@@ -3,7 +3,7 @@ var urlService = "http://54.94.159.232:8080/nutri-rest-patient/rest/";
 var globalIndex = null;
 var storeParameters = {
 	index : null,
-	dias: 7,
+	inicio: null,
 	feed: null
 }
 // Create the XHR object.
@@ -12,36 +12,47 @@ $(document).on('pagebeforeshow', '#home', function(){
 	if (user == null){
 		$.mobile.changePage($('#login'));
 	}
-	$('#feed-data').empty(); 
-	var context = homeContext();
+	$('#feed-data').empty();
+	$('#loading').show();
+	var hoje = Date.today().add(1).days();
+	if(storeParameters.inicio == null){
+		storeParameters.inicio = Date.parse("last sunday");
+		console.log("Weekend guardado na memória = " + storeParameters.inicio)
+	}
+	var context = homeContext(storeParameters.inicio.getTime(), hoje.getTime());
 	var homePage = Handlebars.compile($("#home-tpl").html());;
+	$('#loading').hide();
 	$('#feed-data').html(homePage(context));
 	$('#feed-data').listview('refresh');
+	
+	
 	$(document).on("click",'#change-page-button', function (event) {
 		
 		//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
 	   var parm = $(this).data('parm');
 	   storeParameters["index"] = parm;
 	   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
-	   $.mobile.changePage($('#detalhes'));
+	   $.mobile.changePage($('#detalhes'), {transition: 'none'});
 	});
+	
+	
 });
 
 $(document).on('pagebeforeshow', '#detalhes', function(){
 	$('#details-data').empty(); 
-	var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
 	var index = storeParameters["index"];
 	console.log("Carregando detalhes de = " + index);
 	var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
 	var image = null;
-	var d = new Date();
-	var n = d.getTime(); //retorna a data de hoje em millesegundos
-	//console.log("n de getTime = " + n);
-	var dias = 86400000; //1 dias em milleseconds
-	var imagensData = recuperaImagemData(n-(dias*15), n+dias);
+	var hoje = Date.today().add(1).days();
+	var inicio = storeParameters.inicio;
+	var imagensData = recuperaImagemData(inicio.getTime(), hoje.getTime());
 	image = imagensData[index];
 	console.log("IMAGE = " + JSON.stringify(image));
 	var comentarios = recuperaComentarios(image);
+	var newDate = Date.parse(image.data);
+	var dia = newDate.toString("dd/MM");
+	var hora = newDate.toString("HH:mm");
 	var context = {
 				"index": index,
 				"id": image.idImagem,
@@ -50,7 +61,7 @@ $(document).on('pagebeforeshow', '#detalhes', function(){
 				"rating": image.rating,
 				"title": image.nome,
 				"description": image.descricao,
-				"data": image.date,
+				"date": dia + " às " + hora,
 				"comments": comentarios,
 				"stars": [],
 				"starsEmpty": []
@@ -63,6 +74,22 @@ $(document).on('pagebeforeshow', '#detalhes', function(){
 	var detailsPage = Handlebars.compile($("#detail-tpl").html());;
 	$('#details-data').html(detailsPage(context));
 	$('#details-data').listview('refresh');
+	
+	event.stopPropagation();
+    event.preventDefault();
+});
+
+$(document).on('pagebeforechange', '#detalhes', function(){
+	$(this).remove();
+	event.stopPropagation();
+    event.preventDefault();
+});
+
+$('#detalhes').live('pagehide', function (event, ui) { 
+    var page = jQuery(event.target);
+   // if (page.attr(‘data-cache’) == ‘never’) { 
+    page.remove(); 
+   // }; 
 });
 
 $(document).on('pageinit', '#profile', function(){
@@ -81,6 +108,51 @@ $(document).on('pageinit', '#profile', function(){
 	$('#perfil-data').listview('refresh');
 });
 
+//Força a não carregar páginas pelo cache
+jQuery('div').on('pagehide', function(event, ui){
+  var page = jQuery(event.target);
+
+  if(page.attr('data-cache') == 'never'){
+    page.remove();
+  };
+});
+//Função para interceptar o evento do click do botão físico BACK
+/*$(document).bind('keydown', function(event) {
+  if (event.keyCode == 27) {
+    // Prevent default (disable the back button behavior)
+    event.preventDefault();
+	console.log("Backbutton Prevent Method Triggered!");
+	$.mobile.changepage($('#home'));
+    // Your code to show another page or whatever...
+  }
+});*/
+
+$(window).on("navigate", function (event, data) {
+  console.log("Navigate Event Triggered!");
+  var direction = data.state.direction;
+  event.preventDefault();
+  if (direction == 'back') {
+    console.log("Navigate Event Triggered! BACK");
+	 if ( $('.ui-page-active').attr('id') == 'home' || $('.ui-page-active').attr('id') == 'login') {
+		 		console.log("Estou na HOME, então irei fechar a aplicação");
+                navigator.app.exitApp();
+            } else {
+				if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'cadastro') {
+                	$("body").pagecontainer("change", "#login");	
+				}
+				else{
+				
+					$("body").pagecontainer("change", "#home");
+					event.stopPropagation();
+    				event.preventDefault();
+				}
+            }
+  }
+  if (direction == 'forward') {
+    console.log("Navigate Event Triggered! FORWARD");
+	event.preventDefault();
+  }
+});
 
 function criaUsuario(){
 		var username= $("#rusername").val();
@@ -126,16 +198,44 @@ function login(){
 			contentType: "application/json; charset=utf-8",
 			dataType: "json",
 			async: false,
+			beforeSend: function(){
+        		$('#loading').show();
+    		},
 			success: function(data){
 				//console.log("login retrun: " + data);
+				$('#loading').hide();
+				
 				data.email = dataE.email;	
 				window.localStorage.setItem("user", JSON.stringify(data));
 				$.mobile.changePage("#home");
 			},
 			error: function (e) {
-				console.log("Login Retorno: ERROR!");
+				console.log("Login Retorno: ERROR! = " + JSON.stringify(e));
+				$('#loading').hide();
+				$("#password").val(""); 
+				var context = { };
+				if(e.responseJSON && e.responseJSON.msg == "Erro de login"){
+					console.log("Message do error = " + e.responseJSON.msg);
+					context = {
+					  "error" : e.responseJSON.msg,
+					  "link" : "#login",
+					  "btn-text": "Login",
+					  "msg" : "Usuário ou Senha inválidos, por favor tente logar-se novamente...",
+					}
+				}
+				else{
+					context = {
+					  "error" : "Erro de conexão",
+					  "link" : "#login",
+					  "btn-text": "Login",
+					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve.",
+					}
+				}
 				window.localStorage.removeItem("user");
-				$.mobile.changePage("#login");
+				$.mobile.changePage("#error");
+				var errorPage = Handlebars.compile($("#error-tpl").html());;
+				$('#error-data').html(errorPage(context));
+				$('#error-data').listview('refresh');
 			}
 		});  
 }
@@ -187,6 +287,14 @@ function criaImagem(){
 			async: false,
 			success: function (data){
 				console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
+				$("#photoTitle").val("");
+				$("#photoDesciption").val("");
+				node.innerHTML = "";
+				var ic = document.getElementById('imageContainer');
+				ic.innerHTML = "";
+				
+				
+				
 				$.mobile.changePage("#home");
 			},
 			error: function (e) {
@@ -233,27 +341,36 @@ function criaComentario(){
 	var id = document.getElementById('hiddenID').innerHTML;
 	console.log("IMAGE ID COMENTARIO = " + id);
 	var comentarioText = $("#comentarioText").val();
-	var data = {"token" : user.token, "idImagem" : id, "comentarioText" : comentarioText };
-	$.ajax( {
-			type: "POST",
-			url: urlService + "comment/criaComentario",
-			data: data,
-			contentType: "application/json; charset=utf-8",
-			dataType: "json",
-			async: false,
-			success: function(data){
-				console.log("Comentario criado com sucesso! = " + data);
-				console.log("USER? = " + JSON.stringify(user));
-				var cc = document.getElementById('commentContainer');	
-				var newComment = "<p><small>'Enviado:'</small><span class='author' id=''><strong>"+ user.nomeUsuario +" >>  </strong></span>  " + comentarioText + "</p>";
-				var htmlContent = cc.innerHTML;
-				cc.innerHTML = newComment + htmlContent;
-			},
-			error: function (e) {
-				idComentario = null;
-				console.log("criaComentario Retorno: ERROR!" + JSON.stringify(e));
-			}
-	});
+	comentarioText = comentarioText.trim();
+	if (comentarioText != ""){
+		var data = {"token" : user.token, "idImagem" : id, "comentarioText" : comentarioText };
+		$.ajax( {
+				type: "POST",
+				url: urlService + "comment/criaComentario",
+				data: data,
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				async: false,
+				success: function(data){
+					console.log("Comentario criado com sucesso! = " + data);
+					console.log("USER? = " + JSON.stringify(user));
+					$("#comentarioText").val("");
+					/*var cc = document.getElementById('commentContainer');	
+					var newComment = "<p><small>'Enviado '</small><span class='author' id=''><strong>"+ user.nomeUsuario +" :  </strong></span>  " + comentarioText + "</p>";
+					var htmlContent = cc.innerHTML;
+					cc.innerHTML = newComment + htmlContent;*/
+					$.mobile.changePage($('#detalhes'), {
+						allowSamePageTransition: true,
+						transition: 'none',
+						reloadPage: true 
+					 });
+				},
+				error: function (e) {
+					idComentario = null;
+					console.log("criaComentario Retorno: ERROR!" + JSON.stringify(e));
+				}
+		});
+	}
 }
 
 function recuperaComentarios(image){
@@ -280,7 +397,7 @@ function recuperaComentarios(image){
 
 function recuperaImagemData(dataInicio, dataFim){
 	var user = JSON.parse(window.localStorage.getItem("user"));
-	console.log("Recupera Imagem Data");
+	console.log("Recupera Imagem Data de " + dataInicio + " até " + dataFim);
 	var retorno = null;
 	if(user){
 		var dataE = {"token" : user.token, "millisDataInicio" : dataInicio, "millisDataFim" : dataFim};
@@ -297,20 +414,41 @@ function recuperaImagemData(dataInicio, dataFim){
 			},
 			error: function (e) {
 				console.log("recuperaImagemData Retorno: ERROR!" + JSON.stringify(e));
+				var context = { };
+				if(e.responseJSON && e.responseJSON.msg == "Token invalido"){
+					console.log("Message do error = " + e.responseJSON.msg);
+					context = {
+					  "error" : e.responseJSON.msg,
+					  "link" : "#login",
+					  "btn-text": "Login",
+					  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor realize o login novamente."
+					}
+				}
+				else{
+					context = {
+					  "error" : "Erro de conexão",
+					  "link" : "#login",
+					  "btn-text": "Login",
+					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
+					}
+				}
+				window.localStorage.removeItem("user");
+				$.mobile.changePage("#error");
+				var errorPage = Handlebars.compile($("#error-tpl").html());;
+				$('#error-data').html(errorPage(context));
+				
 			}
+				
 		});
 	}
 	return retorno;
 	
 }
 
-function homeContext() {
-		var d = new Date();
-		var n = d.getTime(); //retorna a data de hoje em millesegundos
-		//console.log("n de getTime = " + n);
-		var dias = 86400000; //1 dias em milleseconds
-		var imagensData = recuperaImagemData(n-(dias*15), n+dias);
-		console.log("ImagemData  = " + JSON.stringify(imagensData));
+function homeContext(inicio, fim) {
+		
+		var imagensData = recuperaImagemData(inicio, fim);
+		//console.log("ImagemData  = " + JSON.stringify(imagensData));
 		var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
 		if(imagensLib == null){
 			console.log("BIBLIOTECA NULA, CRIANDO UMA!");
@@ -325,30 +463,40 @@ function homeContext() {
 			}
 			if(imagensData){
 				context.hasFeed = true;
+				var previousWeekend = null;
 				for (var i = imagensData.length - 1; i>=0; i--){
 					//console.log(i +" =>" +  imagensLib.images[i].nome);
 					var json = imagensData[i]; //idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
+					var newDate = Date.parse(json.data);
 					var image = {
 						"index": i,
-						"data": json.data,
+						"data": newDate,
 						"id": json.idImagem,
 						"photo_label" : json.nome,
 						"title": json.nome,
 						"description": json.descricao,
 						"rating": json.rating
 					}
+					//logica para dividir o feed semanalmente:
+					if(newDate != null){
+						var weekend = newDate.last().sunday();
+						weekend.setHours(0,0,0,0);
+						//console.log("Weekend da foto " + image["index"] + "-> " + weekend);
+						if (previousWeekend == null || weekend.compareTo(previousWeekend) == -1){
+							//console.log("First foto do weekend: " + image["firstPhotoOfTheWeek"] + " >>> " + image["title"]);
+							var dia = ("0" + weekend.getDate()).slice(-2);
+							var mes = ("0" + (weekend.getMonth() + 1)).slice(-2);
+							image["firstPhotoOfTheWeek"] = dia +"/"+ mes;
+							previousWeekend = weekend.clone();  
+						}
+					}
 					if(imagensLib.hasOwnProperty(json.idImagem)){
-						
 							image["base64"] = imagensLib[json.idImagem];
-							if(i == imagensData.length - 1){
-								console.log("IMAGEM QUE ACABEI DE CRIAR TEM NA BIBLIOTECA!");
-							}
-							console.log("TEM A IMAGEM NA BIBLIOTECA!");
 					}
 					else{ //não tem base64 no armazenamento do celular, pedir ao servidor...
 						var base = recuperaImagem(json.idImagem, user.token);
 						if(i == imagensData.length - 1){
-							 console.log("NÃO TEM A IMAGEM NA BIBLIOTECA!");
+							 //console.log("NÃO TEM A IMAGEM NA BIBLIOTECA!");
 						}
 						image["base64"] = base;
 						imagensLib[json.idImagem] = base; //salva na storage do dispositivo
@@ -363,6 +511,21 @@ function homeContext() {
 			window.localStorage.setItem("imageLib", JSON.stringify(imagensLib)); //atualiza o banco de imagens do dispositivo.
 			return context;
 	
+}
+
+function loadMoreFeed(){
+	$('#loading').show();
+	$('#feed-data').listview('refresh');
+	var storeDate = storeParameters.inicio;
+	var newDate = storeDate.clone().addWeeks(-1);
+	console.log("Adicionado mais uma semana para feed: " + storeDate + " PARA ===> " + newDate);
+	var hoje = Date.today().add(1).days();
+	storeParameters.inicio = newDate.clone();
+	var context = homeContext(newDate.getTime(), hoje.getTime());
+	var homePage = Handlebars.compile($("#home-tpl").html());
+	$('#loading').hide();
+	$('#feed-data').html(homePage(context));
+	$('#feed-data').listview('refresh');
 }
 
 
@@ -380,8 +543,9 @@ function takePhoto() {
 }
 
 function onCameraSuccess(imageURL) {
+	$.mobile.changePage($('#camera'));
 	var ic = document.getElementById('imageContainer');
-	ic.innerHTML = '<img src="data:image/png;base64,' + imageURL + '" width="100%" />';
+	ic.innerHTML = '<img class="imagePreview" src="data:image/png;base64,' + imageURL + '" width="100%"/>';
 	var node = document.getElementById('hiddenBase64');
 	node.innerHTML = imageURL;
 	//console.log("Base64 salvado na div invisivel: " + document.getElementById('hiddenBase64').innerHTML);
@@ -389,6 +553,9 @@ function onCameraSuccess(imageURL) {
 
 function onCameraError(e) {
 	console.log(e);
+	event.preventDefault();
+	event.stopPropagation();
+	$.mobile.changePage($('#home'));
 	navigator.notification.alert("onCameraError: " + e + "(" + e.code + ")");
 }
 
