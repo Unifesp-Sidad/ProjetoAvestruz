@@ -217,7 +217,9 @@
         	<div id="comment-field">
                     <label for="comentarioText" class="ui-hidden-accessible">Comentario:</label>
                     <textarea name="comentario" id="comentarioText" placeholder="Escreva um comentário" class="comment-textbox"></textarea>
+                <div style="text-align:center; background-color: #FFBD21;">
                     <input class="button-style-1" type="button" onClick="criaComentario()" value="Enviar" />
+                </div>
            </div>
         </div>
 	 <!--</div>-->
@@ -268,13 +270,14 @@
     </div>
 </div>
 
+
 <div data-role="page" id="cadastro" data-theme="b">
     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
         <a href="#login"><i class="fa fa-arrow-left"></i></a>
             <h1>Cadastro</h1>
       </div>
 
-      <div role="main" class="ui-content">
+      <div role="main" class="ui-content" style="overflow-y: hidden;">
         <div class="formCadastro" data-role="fieldcontain">
             <div align="center">
 			
@@ -367,17 +370,17 @@
         </div>
 
     <div role="main" class="ui-content">
-    		<div id="fixed-form" data-position="fixed" class="fixed">
-                <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
-                <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
-                <br>
-                <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
-            </div>
         	<div id="hiddenBase64" style="display: none"></div>
             <div id="imageContainer"></div>
             <br>
+            <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
+            <textarea name="descricao" id="photoDesciption" rows="2" placeholder="Descrição" style="resize: none;"></textarea>
+            <br>
+            <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
+            <br>
+            <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
             
-              
+            
 
     </div>
 
