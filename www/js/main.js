@@ -85,7 +85,7 @@ $(document).on('pagebeforechange', '#detalhes', function(){
     event.preventDefault();
 });
 
-$('#detalhes').live('pagehide', function (event, ui) { 
+$('#detalhes').on('pagehide', function (event, ui) { 
     var page = jQuery(event.target);
    // if (page.attr(‘data-cache’) == ‘never’) { 
     page.remove(); 
@@ -136,17 +136,17 @@ $(window).on("navigate", function (event, data) {
 	 if ( $('.ui-page-active').attr('id') == 'home' || $('.ui-page-active').attr('id') == 'login') {
 		 		console.log("Estou na HOME, então irei fechar a aplicação");
                 navigator.app.exitApp();
-            } else {
-				if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'cadastro') {
+     } else {
+		 if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'cadastro') {
                 	$("body").pagecontainer("change", "#login");	
-				}
-				else{
+		  }
+		  else{
 				
 					$("body").pagecontainer("change", "#home");
 					event.stopPropagation();
     				event.preventDefault();
-				}
-            }
+		}
+     }
   }
   if (direction == 'forward') {
     console.log("Navigate Event Triggered! FORWARD");
