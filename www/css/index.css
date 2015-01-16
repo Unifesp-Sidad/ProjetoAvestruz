@@ -1,3 +1,7 @@
+html{
+  overflow-y: hidden;
+}
+
 .btn-basico {
     background-color:#ffffff;
     -moz-border-radius:4px;
