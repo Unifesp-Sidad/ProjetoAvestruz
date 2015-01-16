@@ -17,8 +17,8 @@
         <script src="js/storage/memory-store.js"></script>  
         <script type="text/javascript" src="cordova.js"></script>
         <script src="lib/handlebars.js"></script>
-		<script src="js/date.js"></script>
-		<script src="js/main.js"></script>
+        <script src="js/date.js"></script>
+        <script src="js/main.js"></script>
 
 <!-- Importação de CSS -->
         <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.4.css">
@@ -34,28 +34,29 @@
 <!-- Aguardando Phonegap carregar -->
 <script>
     document.addEventListener("deviceready", onDeviceReady, false);
-	function onDeviceReady() {
-	
-			// Native loading spinner
-			if (window.spinnerplugin) {
-				$.extend($.mobile, {
-					loading: function() {
-						// Show/hide spinner
-						var arg = arguments ? arguments[0] : '';
-						if (arg == 'show') spinnerplugin.show({'overlay':true});
-						else if (arg == 'hide') spinnerplugin.hide();           
-		
-						// Compatibility with jQM 1.4
-						return { loader: function() { } }
-					}
-				});
-			}
-	}
+    function onDeviceReady() {
+    
+            // Native loading spinner
+            if (window.spinnerplugin) {
+                $.extend($.mobile, {
+                    loading: function() {
+                        // Show/hide spinner
+                        var arg = arguments ? arguments[0] : '';
+                        if (arg == 'show') spinnerplugin.show({'overlay':true});
+                        else if (arg == 'hide') spinnerplugin.hide();           
+        
+                        // Compatibility with jQM 1.4
+                        return { loader: function() { } }
+                    }
+                });
+            }
+    }
 </script>
 
 
 <style>
 .ui-btn-active{color: #fff !important;background: #FFBD21 !important;}
+input[type=button]:hover{background-color: green;}
 </style>
 
         <title>NU3 Project</title>
@@ -90,16 +91,16 @@
                 <li><a href="#profile">Perfil</a></li>
                 <li><a href="#sobre">Sobre</a></li>
                 <li><a onClick="logout();">Sair</a></li>
+                <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
             </ul>
             <br>
-            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
      </div>
-      <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+      <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
             <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
             <h1>Home</h1>
       </div>
-	<div role="main" class="ui-content">
-		<script id="home-tpl" type="text/x-handlebars-template">
+    <div role="main" class="ui-content">
+        <script id="home-tpl" type="text/x-handlebars-template">
                 <!--// LISTA DA TIMELINE -->
 				<div id="hiddenDayInfo" style="display: none"> {{begginDay}}</div>
                 {{#if offline}}
@@ -159,7 +160,6 @@
                         <li><h2><strong>Sem coletas nessa semana...</strong></h2></li>
                     {{/if}}
                 {{/if}}
-				 
                 <!--// /LISTA DA TIMELINE -->
         </script>
         
@@ -170,7 +170,7 @@
             <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
                 <div data-role="navbar">
                     <ul>
-                        <li><a href="#home" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-home'></i></a></li>
+                        <li><a href="#home" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-home fa-2x'></i></a></li>
                         <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                     </ul>
                 </div>
@@ -186,34 +186,34 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
         </ul>
             <br>
-            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
-    <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+    <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
          <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
          <h1>Detalhes</h1>
     </div>
 
     <div role="main" class="ui-content">
-		<div id="data-index"></div>
+        <div id="data-index"></div>
         <script id="detail-tpl" type="text/x-handlebars-template">
         <div align="center">
-			<img width="80%" src="data:image/png;base64,{{base64}}" alt="{{title}}">
+            <img width="80%" src="data:image/png;base64,{{base64}}" alt="{{title}}">
         </div>
-			<div id="hiddenID" style="display: none">{{id}}</div>
-			<div class="inner-content">
-					 <div class="estrelas-aumentada" align="center">
-					 	{{#each this.stars}}
-						 <img src="img/star_full.png" alt="star" width="10px" height="10px">
-						 {{/each}}
-						 {{#each this.starsEmpty}}
-						 <img src="img/star_empty.png" alt="star" width="10px" height="10px">
-						 {{/each}}
-					 </div>
+            <div id="hiddenID" style="display: none">{{id}}</div>
+            <div class="inner-content">
+                     <div class="estrelas-aumentada" align="center">
+                        {{#each this.stars}}
+                         <img src="img/star_full.png" alt="star" width="10px" height="10px">
+                         {{/each}}
+                         {{#each this.starsEmpty}}
+                         <img src="img/star_empty.png" alt="star" width="10px" height="10px">
+                         {{/each}}
+                     </div>
                      <div style="text-align: center;">
-					 <strong>{{title}}</strong>
+                     <strong>{{title}}</strong>
                      </div>
 					 <p>
 						<label class="data-label"> Enviado no dia {{date}} </label>
@@ -229,16 +229,17 @@
 					</p>
 					{{/each}}
 					
+
                     </div>
                     </div>
                     
-			</div>
+            </div>
             
         </script>
         
         <ul data-role="listview" id="details-data">
         </ul>
-        	<div id="comment-field">
+            <div id="comment-field">
                     <label for="comentarioText" class="ui-hidden-accessible">Comentario:</label>
                     <textarea name="comentario" id="comentarioText" placeholder="Escreva um comentário" class="comment-textbox"></textarea>
                 <div style="text-align:center; background-color: #FFBD21;">
@@ -246,12 +247,12 @@
                 </div>
            </div>
         </div>
-	 <!--</div>-->
+     <!--</div>-->
     <!-- FOOTER -->
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home fa-2x'></i></a></li>
                     <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
@@ -270,7 +271,7 @@
         <div align="center">
         <img src="img/logonu3.png" width="300px" height="200px"/>
     </div>
-		<div class="formLogin" data-role="fieldcontain">
+        <div class="formLogin" data-role="fieldcontain">
             <div style="align: center;">
              <label for="mail" class="ui-hidden-accessible">Mail:</label>
              <input type="text" name="mail" placeholder="Email" id="mail"/>
@@ -279,14 +280,14 @@
              <input type="password" name="password" placeholder="Password" id="password"/>
              </div>
              <br>
-			<div id="loading" align="center" style="display:none">
-				<p>Contatando o servidor...</p>
-				<img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-			</div>
+            <div id="loading" align="center" style="display:none">
+                <p>Contatando o servidor...</p>
+                <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+            </div>
         
             <div style="text-align:center; background-color: #FFBD21;">
                 <input data-role="button" type="button" onClick="login()" value="Conectar" />
-			</div>
+            </div>
             </div>
         
         <p align="center">Não é usuário? <a href="#cadastro">Cadastre-se</a>.</p>
@@ -295,7 +296,7 @@
 </div>
 
 
-<div data-role="page" id="cadastro" data-theme="b">
+<div data-role="page" id="cadastro" data-theme="b" style="overflow-y: hidden;">
     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
         <a href="#login"><i class="fa fa-arrow-left"></i></a>
             <h1>Cadastro</h1>
@@ -304,28 +305,28 @@
       <div role="main" class="ui-content" style="overflow-y: hidden;">
         <div class="formCadastro" data-role="fieldcontain">
             <div align="center">
-			
+            
             <label for="rusername" class="ui-hidden-accessible">Username:</label>
-			<input type="text"  id="rusername" name="rusername" placeholder="Username" />
-				
+            <input type="text"  id="rusername" name="rusername" placeholder="Username" />
+                
             <label for="rmail" class="ui-hidden-accessible">Mail:</label>
-			<input type="text" name="rmail" placeholder="Email" id="rmail" />
-			
+            <input type="text" name="rmail" placeholder="Email" id="rmail" />
+            
             <label for="rpassword" class="ui-hidden-accessible">Password:</label>
-			<input type="password" name="rpassword" placeholder="Password" id="rpassword" />
+            <input type="password" name="rpassword" placeholder="Password" id="rpassword" />
             <label for="rpassword2" class="ui-hidden-accessible">Password Confirm:</label>
-			<input type="password" name="rpassword2" placeholder="Password Confirm" id="rpassword2" />
+            <input type="password" name="rpassword2" placeholder="Password Confirm" id="rpassword2" />
         </div>
-        	<div id="loading" align="center" style="display:none">
-						<p>Contatando o servidor...</p>
-						<img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-			</div>
-		
+            <div id="loading" align="center" style="display:none">
+                        <p>Contatando o servidor...</p>
+                        <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+            </div>
+        
             <div style="text-align:center; background-color: #FFBD21;">
                 <input data-role="button" type="button" onClick="criaUsuario()" value="Cadastrar" />
             </div>
-			<div id="result"> </div>
-		</div>
+            <div id="result"> </div>
+        </div>
     </div>
 </div>
 
@@ -342,12 +343,12 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
         </ul>
             <br>
-            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
-        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
             <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
             <h1>Sobre</h1>
         </div>
@@ -362,7 +363,7 @@
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home fa-2x'></i></a></li>
                     <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
@@ -383,18 +384,18 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
         </ul>
             <br>
-            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
-        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
             <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
             <h1>Camera</h1>
         </div>
 
     <div role="main" class="ui-content">
-        	<div id="hiddenBase64" style="display: none"></div>
+            <div id="hiddenBase64" style="display: none"></div>
             <div id="imageContainer"></div>
             <br>
             <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
@@ -411,7 +412,7 @@
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home fa-2x'></i></a></li>
                     <li><a href="#" onClick="takePhoto();" class="ui-btn-active ui-state-persist"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
@@ -431,12 +432,12 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
         </ul>
             <br>
-            <a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a>
     </div>
 
-        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
+        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
             <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
             <h1>Perfil</h1>
         </div>
@@ -444,20 +445,20 @@
     <div role="main" class="ui-content">
             <script id="perfil-tpl" type="text/x-handlebars-template">
                 <!-- DADOS PERFIL -->
-				 <h2><strong>{{nome}}</strong></h2>
+                 <h2><strong>{{nome}}</strong></h2>
                 <p>{{email}}</p>
-				<li>
-                	Acompanhado por: Dra. Avestruz
-            	</li>
-            	<li>
-                	Iniciou tratamento em: 19/01/2014
-            	</li>
-				<li>
-					Login válido até: 
-					{{dataExp}}
-				</li>
+                <li>
+                    Acompanhado por: Dra. Avestruz
+                </li>
+                <li>
+                    Iniciou tratamento em: 19/01/2014
+                </li>
+                <li>
+                    Login válido até: 
+                    {{dataExp}}
+                </li>
                 <!-- /DADOS -->
-        	</script>  
+            </script>  
         <ul data-role="listview" id="perfil-data">  
         </ul>
 
@@ -467,7 +468,7 @@
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#home"><i class='blIcon fa fa-home'></i></a></li>
+                    <li><a href="#home"><i class='blIcon fa fa-home fa-2x'></i></a></li>
                     <li><a href="#" onClick="takePhoto();"><i class='blIcon fa fa-camera'></i></a></li>
                 </ul>
             </div>
@@ -482,7 +483,7 @@
         <div align="center">
            <img src="img/logonu3.png" width="150px" height="100px"/>
         </div>
-		<div class="formLogin" data-role="fieldcontain">
+        <div class="formLogin" data-role="fieldcontain">
         <hr class="prettyline">
         <script id="error-tpl" type="text/x-handlebars-template">
              <div class="error-content">
@@ -490,7 +491,7 @@
                  <p>{{msg}}</p>
              </div>
              <br>
-			 <hr class="prettyline">
+             <hr class="prettyline">
              <div>
 			 	<a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
 			 </div>
@@ -502,6 +503,7 @@
              </div>
              {{/if}}
 		 </script>
+
          <ul data-role="listview" id="error-data">  
          </ul>
          </div>

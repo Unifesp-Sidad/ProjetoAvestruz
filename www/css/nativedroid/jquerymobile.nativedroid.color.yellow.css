@@ -25,7 +25,7 @@
 .ui-page-theme-b .ui-btn:hover, html .ui-bar-b .ui-btn:hover, html .ui-page-theme-b .ui-btn:hover, html body .ui-group-theme-b .ui-btn:hover, html head+body .ui-btn.ui-btn-b:hover,
 .ui-page-theme-b .ui-btn:active, html .ui-bar-b .ui-btn:active, html .ui-page-theme-b .ui-btn:active, html body .ui-group-theme-b .ui-btn:active, html head+body .ui-btn.ui-btn-b:active {
 	color: #ffffff;
-	background-color: #FFBD21;
+	background-color: #c18800;
 }
 
 .ui-page-theme-b div.ui-input-text.ui-focus:after{background-color: #FFBD21;}
