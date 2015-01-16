@@ -102,34 +102,64 @@
 		<script id="home-tpl" type="text/x-handlebars-template">
                 <!--// LISTA DA TIMELINE -->
 				<div id="hiddenDayInfo" style="display: none"> {{begginDay}}</div>
-				 {{#if this.hasFeed}}
-					 {{#each this.feed}}
-					 	{{#if this.firstPhotoOfTheWeek}}
-							<hr class="prettyline">
-							 <center>
-							 <h3> Semana: {{firstPhotoOfTheWeek}} </h3>
-							 </center>
-							 <hr class="prettyline">
-						{{/if}}
-					<li><a data-parm="{{index}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}" alt="{{photo_label}}">
-					<h2><strong>{{title}}</strong></h2>
-					{{#if this.ultimoComentario}}
-					<p>{{ultimoComentario}}</p>
-					{{else}}
-					<p>{{description}} </p>
-					{{/if}}
-				</a></li>
-					{{/each}}
-					<div id="loading" align="center" style="display:none">
-						<p>Contatando o servidor...</p>
-						<img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-					</div>
-					<center>
-					<input data-icon="plus" data-iconpos="top" class="button-style-1" type="button" onClick="loadMoreFeed()" value="Carregar mais..." />
-					</center>
-           		{{else}}
-					<li><h2><strong>Sem coletas nessa semana...</strong></h2></li>
-				{{/if}}
+                {{#if offline}}
+                    <center><label class="offlineTitle"> Modo Offline </label></center>
+                    <hr class="prettyline">
+                    {{#if this.hasFeed}}
+                        <label class="paddingFive"> Você tem {{qtd}} foto(s) para sincronizar </label>
+                        <li><a href="#login" class="ui-state-persist"><i class='blIcon fa fa-cloud paddingFive'>  Sincronizar</i></a></li>
+                        <hr class="prettyline">
+                        {{#each this.feed}}
+                            <li><img src="data:image/png;base64,{{base64}}" alt="{{title}}">
+                            <h2><strong>{{title}}</strong></h2>
+                            <p>Tirado em: {{data}}</p>
+                            </li>
+                        {{/each}}
+                    {{else}}
+                    <p class="paddingFive"> Você está no modo offline, </p>
+                    <p class="paddingFive"> Nesse modo suas fotos são armazenadas localmente</p>
+                    <p class="paddingFive"> e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
+                    {{/if}}
+                {{else}}
+                    {{#if this.hasFeed}}
+                         {{#each this.feed}}
+                            {{#if this.firstPhotoOfTheWeek}}
+                                <hr class="prettyline">
+                                 <center>
+                                 <h3> Semana: {{firstPhotoOfTheWeek}} </h3>
+                                 </center>
+                                 <hr class="prettyline">
+                            {{/if}}
+                            <li><a data-parm="{{index}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}" alt="{{photo_label}}">
+                            <p class="position-right">
+                                {{#each this.stars}}
+                                 <img src="img/star_full.png" alt="star" width="10px" height="10px">
+                                 {{/each}}
+                                 {{#each this.starsEmpty}}
+                                 <img src="img/star_empty.png" alt="star" width="10px" height="10px">
+                                 {{/each}}
+                            </p>
+                            <h2 style="padding-left: 5px;"><strong>{{title}}</strong></h2>
+                            
+                            {{#if this.ultimoComentario}}
+                            <p>{{ultimoComentario}}</p>
+                            {{else}}
+                            <p>{{description}} </p>
+                            {{/if}}
+                            </a></li>
+                        {{/each}}
+                        <div id="loading" align="center" style="display:none">
+                            <p>Contatando o servidor e sincronizando...</p>
+                            <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+                        </div>
+                        <center>
+                        <input data-icon="plus" data-iconpos="top" class="button-style-1" type="button" onClick="loadMoreFeed()" value="Carregar mais..." />
+                        </center>
+                    {{else}}
+                        <li><h2><strong>Sem coletas nessa semana...</strong></h2></li>
+                    {{/if}}
+                {{/if}}
+				 
                 <!--// /LISTA DA TIMELINE -->
         </script>
         
@@ -188,12 +218,6 @@
 					 <p>
 						<label class="data-label"> Enviado no dia {{date}} </label>
 					</p>
-					 <hr class="prettyline">
-                     <div style="margin: 0px 10px;">
-					 
-					 <p>
-						<strong>Descrição:</strong><br>{{description}}
-					 </p>
 					<hr class="prettyline">
 					<h4><strong>Comentários</strong></h4>
 					<div id="commentContainer">
@@ -374,7 +398,6 @@
             <div id="imageContainer"></div>
             <br>
             <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
-            <textarea name="descricao" id="photoDesciption" rows="2" placeholder="Descrição" style="resize: none;"></textarea>
             <br>
             <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
             <br>
@@ -471,6 +494,13 @@
              <div>
 			 	<a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
 			 </div>
+
+             {{#if offline}}
+             <hr class="prettyline">
+             <div>
+                <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
+             </div>
+             {{/if}}
 		 </script>
          <ul data-role="listview" id="error-data">  
          </ul>

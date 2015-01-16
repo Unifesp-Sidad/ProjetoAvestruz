@@ -174,3 +174,12 @@
 .fixed{
 	position: fixed;
 }
+
+.offlineTitle{
+  padding-top: 5px;
+  color: #FFBD21;
+}
+
+.paddingFive{
+  padding: 5px 5px 5px 5px;
+}

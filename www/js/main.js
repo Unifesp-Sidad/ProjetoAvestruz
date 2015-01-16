@@ -1,6 +1,7 @@
 // JavaScript Document
 var urlService = "http://54.94.159.232:8080/nutri-rest-patient/rest/";
 var globalIndex = null;
+var networkStatus = true;
 var storeParameters = {
 	index : null,
 	inicio: null,
@@ -9,34 +10,43 @@ var storeParameters = {
 // Create the XHR object.
 $(document).on('pagebeforeshow', '#home', function(){
 	var user = JSON.parse(window.localStorage.getItem("user"));
-	if (user == null){
-		$.mobile.changePage($('#login'));
+	if (user == null && networkStatus == true){
+		$.mobile.changePage($('#login'));	
 	}
-	$('#feed-data').empty();
-	$('#loading').show();
-	var hoje = Date.today().add(1).days();
-	if(storeParameters.inicio == null){
-		storeParameters.inicio = Date.parse("last sunday");
-		console.log("Weekend guardado na memória = " + storeParameters.inicio)
-	}
-	var context = homeContext(storeParameters.inicio.getTime(), hoje.getTime());
-	var homePage = Handlebars.compile($("#home-tpl").html());;
-	$('#loading').hide();
-	$('#feed-data').html(homePage(context));
-	$('#feed-data').listview('refresh');
-	
-	
-	$(document).on("click",'#change-page-button', function (event) {
+	else{
+		$('#feed-data').empty();
+		var context = null;
+		if (networkStatus == false){
+			console.log("Changing to offline mode!");
+			context = offlineHomeContext();
+		}
+		else{
+			$('#loading').show();
+			var hoje = Date.today().add(1).days();
+			if(storeParameters.inicio == null){
+				storeParameters.inicio = Date.parse("last sunday");
+				console.log("Weekend guardado na memória = " + storeParameters.inicio)
+			}
+			context = homeContext(storeParameters.inicio.getTime(), hoje.getTime());
+			$('#loading').hide();
+		}
+		var homePage = Handlebars.compile($("#home-tpl").html());;
+		$('#feed-data').html(homePage(context));
+		$('#feed-data').listview('refresh');
 		
-		//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
-	   var parm = $(this).data('parm');
-	   storeParameters["index"] = parm;
-	   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
-	   $.mobile.changePage($('#detalhes'), {transition: 'none'});
-	});
-	
+		$(document).on("click",'#change-page-button', function (event) {
+			
+			//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
+		   var parm = $(this).data('parm');
+		   storeParameters["index"] = parm;
+		   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
+		   $.mobile.changePage($('#detalhes'), {transition: 'none'});
+		});
+	}
+		
 	
 });
+
 
 $(document).on('pagebeforeshow', '#detalhes', function(){
 	$('#details-data').empty(); 
@@ -191,6 +201,7 @@ function login(){
         var mail= $("#mail").val();
         var password= $("#password").val(); 
 		var dataE = { "email": mail, "senha":password};
+		$('#loading').show();
 		$.ajax( {
 			type: "POST",
 			url: urlService + "auth/loginUsuario",
@@ -198,15 +209,17 @@ function login(){
 			contentType: "application/json; charset=utf-8",
 			dataType: "json",
 			async: false,
-			beforeSend: function(){
-        		$('#loading').show();
-    		},
 			success: function(data){
 				//console.log("login retrun: " + data);
-				$('#loading').hide();
-				
 				data.email = dataE.email;	
 				window.localStorage.setItem("user", JSON.stringify(data));
+				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
+				if(offlineLib && offlineLib["size"] > 0){
+					synchronize();
+				}
+				networkStatus = true;
+				
+				
 				$.mobile.changePage("#home");
 			},
 			error: function (e) {
@@ -229,7 +242,9 @@ function login(){
 					  "link" : "#login",
 					  "btn-text": "Login",
 					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve.",
+					  "offline" : true
 					}
+					networkStatus = false;
 				}
 				window.localStorage.removeItem("user");
 				$.mobile.changePage("#error");
@@ -270,38 +285,94 @@ function clearCache(){
 
 function criaImagem(){
 	var nome = $("#photoTitle").val();
-	var text = $("#photoDesciption").val();
+	//var text = $("#photoDesciption").val();
 	var node = document.getElementById('hiddenBase64');
 	var base64 = node.innerHTML;
 	//console.log("Base retirado do HTML = " + base64);
-	var user = JSON.parse(window.localStorage.getItem("user"));
-	var token = user.token;
-	var date =  new Date();
-	var dataE = {"token" : token, "nomeFoto" : nome , "descricao" : text , "base64code" : base64};
-	$.ajax( {
-			type: "POST",
-			url: urlService + "image/criaImagem",
-			data: dataE,
-			contentType: "application/json; charset=utf-8",
-			dataType: "text",
-			async: false,
-			success: function (data){
-				console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
-				$("#photoTitle").val("");
-				$("#photoDesciption").val("");
-				node.innerHTML = "";
-				var ic = document.getElementById('imageContainer');
-				ic.innerHTML = "";
-				
-				
-				
-				$.mobile.changePage("#home");
-			},
-			error: function (e) {
-				console.log("criaImagem Retorno: ERROR!:" + JSON.stringify(e));
-				return null;
+	console.log("Criar foto modo online? " + networkStatus );
+	if(nome.length > 0){
+		if(networkStatus == true){
+			var user = JSON.parse(window.localStorage.getItem("user"));
+			var token = user.token;
+			var date =  new Date();
+			var dataE = {"token" : token, "nomeFoto" : nome , "descricao" : "" , "base64code" : base64};
+			$.ajax( {
+				type: "POST",
+				url: urlService + "image/criaImagem",
+				data: dataE,
+				contentType: "application/json; charset=utf-8",
+				dataType: "text",
+				async: false,
+				success: function (data){
+					console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
+					$("#photoTitle").val("");
+					$("#photoDesciption").val("");
+					node.innerHTML = "";
+					var ic = document.getElementById('imageContainer');
+					ic.innerHTML = "";
+					
+					
+					
+					$.mobile.changePage("#home");
+				},
+				error: function (e) {
+					if(e.responseJSON && e.responseJSON.msg == "Token invalido"){
+						console.log("Message do error = " + e.responseJSON.msg);
+						context = {
+						  "error" : "Falha ao enviar imagem - " + e.responseJSON.msg,
+						  "link" : "#login",
+						  "btn-text": "Login",
+						  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor realize o login novamente."
+						}
+					}
+					else{
+						context = {
+						  "error" : "Falha ao enviar imagem - Erro de conexão",
+						  "link" : "#login",
+						  "btn-text": "Login",
+						  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
+						}
+					}
+					window.localStorage.removeItem("user");
+					$.mobile.changePage("#error");
+					var errorPage = Handlebars.compile($("#error-tpl").html());;
+					$('#error-data').html(errorPage(context));
+				}
+			});
+		}
+		else{
+			var currentDate = Date.parse("now");
+			var day = currentDate.toString("dd/MM");
+			var hour = currentDate.toString("HH:mm");
+			var image = {
+				"currentDate": currentDate,
+				"data_print": day + " - " + hour,
+				"photo_label" : nome,
+				"base64": base64,
+				"sincronizada": false
 			}
-		});  
+			var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
+			if (offlineImagensLib){
+				offlineImagensLib["gallery"].push(image);
+				offlineImagensLib["size"] += 1; 
+				
+			}
+			else{
+				offlineImagensLib = { 
+					"size" : 1,
+					"gallery" : [image]
+				};
+			}
+			console.log("Offline lib = " + JSON.stringify(offlineImagensLib));
+			window.localStorage.setItem("offlineLib", JSON.stringify(offlineImagensLib));
+			$("#photoTitle").val("");
+			$("#photoDesciption").val("");
+			node.innerHTML = "";
+			var ic = document.getElementById('imageContainer');
+			ic.innerHTML = "";
+			$.mobile.changePage("#home");
+		}
+	}
 }
 
 
@@ -429,7 +500,8 @@ function recuperaImagemData(dataInicio, dataFim){
 					  "error" : "Erro de conexão",
 					  "link" : "#login",
 					  "btn-text": "Login",
-					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
+					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve.",
+					  "offline" : true
 					}
 				}
 				window.localStorage.removeItem("user");
@@ -475,7 +547,13 @@ function homeContext(inicio, fim) {
 						"photo_label" : json.nome,
 						"title": json.nome,
 						"description": json.descricao,
-						"rating": json.rating
+						"rating": json.rating,
+						"stars": [],
+						"starsEmpty": []
+					}
+					for(var j=1; j<= 5; j++){
+						if(j <= image.rating) image["stars"].push(1);
+						else image["starsEmpty"].push(1);
 					}
 					//logica para dividir o feed semanalmente:
 					if(newDate != null){
@@ -495,9 +573,6 @@ function homeContext(inicio, fim) {
 					}
 					else{ //não tem base64 no armazenamento do celular, pedir ao servidor...
 						var base = recuperaImagem(json.idImagem, user.token);
-						if(i == imagensData.length - 1){
-							 //console.log("NÃO TEM A IMAGEM NA BIBLIOTECA!");
-						}
 						image["base64"] = base;
 						imagensLib[json.idImagem] = base; //salva na storage do dispositivo
 					}
@@ -511,6 +586,39 @@ function homeContext(inicio, fim) {
 			window.localStorage.setItem("imageLib", JSON.stringify(imagensLib)); //atualiza o banco de imagens do dispositivo.
 			return context;
 	
+}
+
+function offlineHomeContext() {
+		
+		//window.localStorage.removeItem("offlineLib");
+		var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
+		console.log("CONTEXTO OFFLINE = " + JSON.stringify(offlineImagensLib))
+		var context = {
+			title: "Modo Offline",
+			offline: true,
+			feed: []
+		}
+		if(offlineImagensLib && offlineImagensLib["gallery"]){
+			context.hasFeed = true;
+			context.qtd = offlineImagensLib["size"];
+			console.log("Gallery = " + offlineImagensLib["gallery"]);
+			console.log("Gallery Size = " + offlineImagensLib["gallery"].length);
+			for (var i = offlineImagensLib["gallery"].length - 1; i>=0; i--){
+				console.log(i +" =>" +  offlineImagensLib["gallery"][i].photo_label);
+				var json = offlineImagensLib['gallery'][i]; //idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
+				console.log("Data string = " + json.currentDate.toString("d-MMM-yyyy"));
+				console.log("Data type = " + json.currentDate);
+				var image = {
+					"index": i,
+					"data": json.data_print,
+					"title" : json.photo_label,
+					"base64": json.base64
+				}
+				context.feed.push(image);
+			}
+		}
+		storeParameters.feed = context.feed;
+		return context;
 }
 
 function loadMoreFeed(){
@@ -558,6 +666,58 @@ function onCameraError(e) {
 	$.mobile.changePage($('#home'));
 	navigator.notification.alert("onCameraError: " + e + "(" + e.code + ")");
 }
+
+function synchronize(){
+	
+	var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
+	var user = JSON.parse(window.localStorage.getItem("user"));
+	var token = user.token;
+	console.log("Sincronizando " + offlineImagensLib["size"] + " imagens");
+	for (var i = 0; i < offlineImagensLib["gallery"].length; i++){
+		var image = offlineImagensLib["gallery"][i];
+		if(image.sincronizada == false){
+			var dataE = {"token" : token, "nomeFoto" : image.photo_label , "descricao" : "" , "base64code" : image.base64};
+			$.ajax( {
+				type: "POST",
+				url: urlService + "image/criaImagem",
+				data: dataE,
+				contentType: "application/json; charset=utf-8",
+				dataType: "text",
+				async: false,
+				success: function (data){
+					console.log("IMAGEM " + i + " " + image.photo_label + " sincronizada com sucesso");
+					offlineImagensLib["gallery"][i].sincronizada = true;
+				},
+				error: function (e) {
+					if(e.responseJSON && e.responseJSON.msg == "Token invalido"){
+						console.log("Message do error = " + e.responseJSON.msg);
+						context = {
+						  "error" : "Falha ao sincronizar - " + e.responseJSON.msg,
+						  "link" : "#login",
+						  "btn-text": "Login",
+						  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor realize o login novamente."
+						}
+					}
+					else{
+						context = {
+						  "error" : "Falha ao sincronizar - Erro de conexão",
+						  "link" : "#login",
+						  "btn-text": "Login",
+						  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
+						}
+					}
+					window.localStorage.removeItem("user");
+					$.mobile.changePage("#error");
+					var errorPage = Handlebars.compile($("#error-tpl").html());;
+					$('#error-data').html(errorPage(context));
+				}
+			});
+		}
+	}
+	window.localStorage.removeItem("offlineLib");
+}
+
+
 
 var loginTemplate = Handlebars.compile($("#login-tpl").html());
 var homeTemplate = Handlebars.compile($("#home-tpl").html());
