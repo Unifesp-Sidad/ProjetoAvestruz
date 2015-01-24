@@ -90,7 +90,7 @@
                 <li><a href="#profile">Perfil</a></li>
                 <li><a href="#sobre">Sobre</a></li>
                 <li><a onClick="logout();">Sair</a></li>
-                <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
+                <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
             </ul>
             <br>
      </div>
@@ -101,7 +101,7 @@
     <div role="main" class="ui-content">
         <script id="home-tpl" type="text/x-handlebars-template">
                 <!--// LISTA DA TIMELINE -->
-				<div id="hiddenDayInfo" style="display: none"> {{begginDay}}</div>
+                <div id="hiddenDayInfo" style="display: none"> {{begginDay}}</div>
                 {{#if offline}}
                     <center><label class="offlineTitle"> Modo Offline </label></center>
                     <hr class="prettyline">
@@ -185,7 +185,7 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
         </ul>
             <br>
     </div>
@@ -214,20 +214,20 @@
                      <div style="text-align: center;">
                      <strong>{{title}}</strong>
                      </div>
-					 <p>
-						<label class="data-label"> Enviado no dia {{date}} </label>
-					</p>
-					<hr class="prettyline">
-					<h4><strong>Comentários</strong></h4>
-					<div id="commentContainer">
-					{{#each this.comments}}
-					<p>
-						<small>{{dataEnvio}}</small> 
-						<span class="author" id="{{idComentario}}"><strong>{{nomeUsuario}}: </strong></span>
-						{{texto}}
-					</p>
-					{{/each}}
-					
+                     <p>
+                        <label class="data-label"> Enviado no dia {{date}} </label>
+                    </p>
+                    <hr class="prettyline">
+                    <h4><strong>Comentários</strong></h4>
+                    <div id="commentContainer">
+                    {{#each this.comments}}
+                    <p>
+                        <small>{{dataEnvio}}</small> 
+                        <span class="author" id="{{idComentario}}"><strong>{{nomeUsuario}}: </strong></span>
+                        {{texto}}
+                    </p>
+                    {{/each}}
+                    
 
                     </div>
                     </div>
@@ -342,7 +342,7 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
         </ul>
             <br>
     </div>
@@ -383,7 +383,7 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
         </ul>
             <br>
     </div>
@@ -431,7 +431,7 @@
             <li><a href="#profile">Perfil</a></li>
             <li><a href="#sobre">Sobre</a></li>
             <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-inline="true">Fechar</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
         </ul>
             <br>
     </div>
@@ -492,8 +492,8 @@
              <br>
              <hr class="prettyline">
              <div>
-			 	<a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
-			 </div>
+                <a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
+             </div>
 
              {{#if offline}}
              <hr class="prettyline">
@@ -501,7 +501,7 @@
                 <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
              </div>
              {{/if}}
-		 </script>
+         </script>
 
          <ul data-role="listview" id="error-data">  
          </ul>
