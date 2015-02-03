@@ -121,8 +121,16 @@
                     <p class="paddingFive"> e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
                     {{/if}}
                 {{else}}
-                    {{#if this.hasFeed}}
-                         {{#each this.feed}}
+                    
+                     {{#each this.feed}}
+                        {{#if this.emptyWeek}}
+                            <hr class="prettyline">
+                            <center>
+                                <h3> Semana: {{date}} </h3>
+                            </center>
+                            <hr class="prettyline">
+                            <li><center>Sem coletas nessa semana</center></li>
+                        {{else}}
                             {{#if this.firstPhotoOfTheWeek}}
                                 <hr class="prettyline">
                                  <center>
@@ -142,22 +150,19 @@
                             <h2 style="padding-left: 5px;"><strong>{{title}}</strong></h2>
                             
                             {{#if this.ultimoComentario}}
-                            <p>{{ultimoComentario}}</p>
+                                <p>{{ultimoComentario}}</p>
                             {{else}}
-                            <p>{{description}} </p>
+                                <p>{{description}} </p>
                             {{/if}}
                             </a></li>
-                        {{/each}}
-                        <div id="loading" align="center" style="display:none">
-                            <p>Contatando o servidor e sincronizando...</p>
-                            <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-                        </div>
-                        <center>
-                        <input data-icon="plus" data-iconpos="top" class="button-style-1" type="button" onClick="loadMoreFeed()" value="Carregar mais..." />
-                        </center>
-                    {{else}}
-                        <li><h2><strong>Sem coletas nessa semana...</strong></h2></li>
-                    {{/if}}
+                        {{/if}}
+                        
+                    {{/each}}
+                    <div id="loading" align="center" style="display:none">
+                        <p>Contatando o servidor e sincronizando...</p>
+                        <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+                    </div>
+                    <a href="#" class="ui-state-persist button-style-1" onClick="loadMoreFeed()"><i class='blIcon fa fa-calendar paddingFive'> Carregar mais feed...</i></a>
                 {{/if}}
                 <!--// /LISTA DA TIMELINE -->
         </script>
@@ -282,6 +287,11 @@
             <div id="loading" align="center" style="display:none">
                 <p>Contatando o servidor...</p>
                 <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+            </div>
+            <div id="sincronizando" align="center" style="display:none">
+                <p>Sincronizando imagens...</p>
+                <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+                <div id="state"></div>
             </div>
         
             <div style="text-align:center; background-color: #FFBD21;">

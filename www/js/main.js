@@ -5,7 +5,10 @@ var networkStatus = true;
 var storeParameters = {
 	index : null,
 	inicio: null,
-	feed: null
+	feed: null,
+	feedSize: 0,
+	weekends: 0,
+	refresh: true
 }
 // Create the XHR object.
 $(document).on('pagebeforeshow', '#home', function(){
@@ -24,10 +27,10 @@ $(document).on('pagebeforeshow', '#home', function(){
 			$('#loading').show();
 			var hoje = Date.today().add(1).days();
 			if(storeParameters.inicio == null){
-				storeParameters.inicio = Date.parse("last sunday");
-				console.log("Weekend guardado na memória = " + storeParameters.inicio)
+				storeParameters.inicio = Date.parse("last sunday");	
 			}
-			context = homeContext(storeParameters.inicio.getTime(), hoje.getTime());
+			console.log("Weekend guardado na memória = " + storeParameters.inicio)
+			context = homeContext(storeParameters.inicio, hoje);
 			$('#loading').hide();
 		}
 		var homePage = Handlebars.compile($("#home-tpl").html());;
@@ -198,10 +201,11 @@ function criaUsuario(){
 }
 
 function login(){
+
         var mail= $("#mail").val();
         var password= $("#password").val(); 
 		var dataE = { "email": mail, "senha":password};
-		$('#loading').show();
+		//$('#loading').show();
 		$.ajax( {
 			type: "POST",
 			url: urlService + "auth/loginUsuario",
@@ -215,6 +219,7 @@ function login(){
 				window.localStorage.setItem("user", JSON.stringify(data));
 				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 				if(offlineLib && offlineLib["size"] > 0){
+
 					synchronize();
 				}
 				networkStatus = true;
@@ -310,9 +315,7 @@ function criaImagem(){
 					node.innerHTML = "";
 					var ic = document.getElementById('imageContainer');
 					ic.innerHTML = "";
-					
-					
-					
+					storeParameters.refresh = true;
 					$.mobile.changePage("#home");
 				},
 				error: function (e) {
@@ -346,6 +349,7 @@ function criaImagem(){
 			var hour = currentDate.toString("HH:mm");
 			var image = {
 				"currentDate": currentDate,
+				"millis": currentDate.getTime(),
 				"data_print": day + " - " + hour,
 				"photo_label" : nome,
 				"base64": base64,
@@ -518,8 +522,7 @@ function recuperaImagemData(dataInicio, dataFim){
 }
 
 function homeContext(inicio, fim) {
-		
-		var imagensData = recuperaImagemData(inicio, fim);
+		console.log("REFRESH???? = " + storeParameters.refresh);
 		//console.log("ImagemData  = " + JSON.stringify(imagensData));
 		var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
 		if(imagensLib == null){
@@ -528,13 +531,13 @@ function homeContext(inicio, fim) {
 		}
 		var user = JSON.parse(window.localStorage.getItem("user"));
 		//console.log("ImageLIB = " + imagensLib);
-		
-			var context = {
-				title: "Teste",
-				feed: []
-			}
-			if(imagensData){
-				context.hasFeed = true;
+		var context = {
+			title: "Teste",
+			feed: [],
+		}
+		if(storeParameters.refresh == true){
+			var imagensData = recuperaImagemData(inicio.getTime(), fim.getTime());
+			if(imagensData && imagensData.length > 0){
 				var previousWeekend = null;
 				for (var i = imagensData.length - 1; i>=0; i--){
 					//console.log(i +" =>" +  imagensLib.images[i].nome);
@@ -579,12 +582,28 @@ function homeContext(inicio, fim) {
 					if(json.hasOwnProperty('ultimoComentario')){
 						image["ultimoComentario"] = json["ultimoComentario"].texto;
 					}
+					
 					context.feed.push(image);
 				}
+				
+				
+			}
+			else{ //semana vazia, ou seja, sem feed algum
+				var week = {
+					"emptyWeek": true,
+					"date": ("0" + inicio.getDate()).slice(-2) + "/" + ("0" + (inicio.getMonth() + 1)).slice(-2)  
+				}
+				context.feed.push(week);
 			}
 			storeParameters.feed = context.feed;
-			window.localStorage.setItem("imageLib", JSON.stringify(imagensLib)); //atualiza o banco de imagens do dispositivo.
-			return context;
+			//storeParameters.refresh = false;
+
+		}
+		else{
+			context.feed = storeParameters.feed;
+		}	
+		window.localStorage.setItem("imageLib", JSON.stringify(imagensLib)); //atualiza o banco de imagens do dispositivo.
+		return context;
 	
 }
 
@@ -622,14 +641,21 @@ function offlineHomeContext() {
 }
 
 function loadMoreFeed(){
+	var context = {
+		title: "Teste",
+		feed: [],
+	}
+	storeParameters.refresh = true;
+	var previousFeed = storeParameters.feed;
 	$('#loading').show();
 	$('#feed-data').listview('refresh');
 	var storeDate = storeParameters.inicio;
 	var newDate = storeDate.clone().addWeeks(-1);
 	console.log("Adicionado mais uma semana para feed: " + storeDate + " PARA ===> " + newDate);
-	var hoje = Date.today().add(1).days();
+	var newWeek = homeContext(newDate, storeDate);
+	context.feed = previousFeed.concat(newWeek.feed);
+	storeParameters.feed = context.feed;
 	storeParameters.inicio = newDate.clone();
-	var context = homeContext(newDate.getTime(), hoje.getTime());
 	var homePage = Handlebars.compile($("#home-tpl").html());
 	$('#loading').hide();
 	$('#feed-data').html(homePage(context));
@@ -668,7 +694,7 @@ function onCameraError(e) {
 }
 
 function synchronize(){
-	
+	$('#sincronizando').show();
 	var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 	var user = JSON.parse(window.localStorage.getItem("user"));
 	var token = user.token;
@@ -676,7 +702,7 @@ function synchronize(){
 	for (var i = 0; i < offlineImagensLib["gallery"].length; i++){
 		var image = offlineImagensLib["gallery"][i];
 		if(image.sincronizada == false){
-			var dataE = {"token" : token, "nomeFoto" : image.photo_label , "descricao" : "" , "base64code" : image.base64};
+			var dataE = {"token" : token, "nomeFoto" : image.photo_label , "descricao" : image.millis , "base64code" : image.base64};
 			$.ajax( {
 				type: "POST",
 				url: urlService + "image/criaImagem",
