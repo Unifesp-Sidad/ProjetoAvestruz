@@ -83,10 +83,22 @@ $(document).on('pagebeforeshow', '#detalhes', function(){
 		if(i <= image.rating) context["stars"].push(1);
 		else context["starsEmpty"].push(1);
 	}
+	var img = new Image();
+	img.onload = function(){
+		if(img.width > img.height){
+			context["class"] = "landscapeImage";
+		}
+		else{
+			context["class"] = "portraitImage";
+		}
+		var detailsPage = Handlebars.compile($("#detail-tpl").html());;
+		console.log("Img class = " + context["class"]);
+		$('#details-data').html(detailsPage(context));
+		$('#details-data').listview('refresh');
+	}
+	img.src = 'data:image/png;base64,' + context["base64"];
 	//console.log("Contexto = " + JSON.stringify(context)); 
-	var detailsPage = Handlebars.compile($("#detail-tpl").html());;
-	$('#details-data').html(detailsPage(context));
-	$('#details-data').listview('refresh');
+	
 	
 	event.stopPropagation();
     event.preventDefault();
@@ -262,25 +274,31 @@ function login(){
 
 function logout(){
 	var user = JSON.parse(window.localStorage.getItem("user"));
-	var data = { token: user.token};
-	$.ajax( {
-			type: "POST",
-			url: urlService + "auth/logoutUsuario",
-			data: data,
-			contentType: "application/json; charset=utf-8",
-			dataType: "json",
-			async: false,
-			success: function(data){
-				console.log("Deslogado com sucesso!");	
-				clearCache();
-				$.mobile.changePage("#login");
-			},
-			error: function (e) {
-				console.log("Login Retorno: ERROR!");
-				clearCache();
-				$.mobile.changePage("#login");
-			}
-		});  
+	if(user != null){ //comunicar o server do logout
+		var data = { token: user.token};
+		$.ajax( {
+				type: "POST",
+				url: urlService + "auth/logoutUsuario",
+				data: data,
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				async: false,
+				success: function(data){
+					console.log("Deslogado com sucesso!");	
+					clearCache();
+					$.mobile.changePage("#login");
+				},
+				error: function (e) {
+					console.log("Login Retorno: ERROR!");
+					clearCache();
+					$.mobile.changePage("#login");
+				}
+			});	
+	}
+	else{
+		$.mobile.changePage("#login");
+	}
+	  
 }
 
 function clearCache(){
@@ -678,8 +696,23 @@ function takePhoto() {
 
 function onCameraSuccess(imageURL) {
 	$.mobile.changePage($('#camera'));
-	var ic = document.getElementById('imageContainer');
-	ic.innerHTML = '<img class="imagePreview" src="data:image/png;base64,' + imageURL + '" width="100%"/>';
+	var imgData = 'data:image/png;base64,' + imageURL;
+	var img = new Image();
+	
+	img.onload = function(){
+		var imgClass = "";
+		console.log("Dimensoes da imagem: " + img.width + " width X " + img.height + " height");
+		if(img.width > img.height){
+			imgClass = "landscapePreview";
+		}
+		else{
+			imgClass = "portraitPreview";
+		}
+		var ic = document.getElementById('imageContainer');
+		console.log("Imagem Class = " + imgClass);
+		ic.innerHTML = '<img class="' + imgClass + '" src="data:image/png;base64,' + imageURL + '"/>';
+	}
+	img.src = imgData;
 	var node = document.getElementById('hiddenBase64');
 	node.innerHTML = imageURL;
 	//console.log("Base64 salvado na div invisivel: " + document.getElementById('hiddenBase64').innerHTML);

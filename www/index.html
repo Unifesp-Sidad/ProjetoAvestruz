@@ -1,41 +1,41 @@
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-        <!--<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />-->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=no" />
-        <script type="text/javascript" charset="utf-8"></script>
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <!--<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=no" />
+    <script type="text/javascript" charset="utf-8"></script>
 
-<!-- Importação de JS -->
-        <script src="js/jquery-1.11.1.min.js"></script>
-        <script src="jquerymobile/jquery.mobile-1.4.4.js"></script>
-        <script src="js/nativedroid.script.js"></script>
-        <script src="js/storage/memory-store.js"></script>  
-        <script type="text/javascript" src="cordova.js"></script>
-        <script src="lib/handlebars.js"></script>
-        <script src="js/date.js"></script>
-        <script src="js/main.js"></script>
+    <!-- Importação de JS -->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="jquerymobile/jquery.mobile-1.4.4.js"></script>
+    <script src="js/nativedroid.script.js"></script>
+    <script src="js/storage/memory-store.js"></script>  
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="lib/handlebars.js"></script>
+    <script src="js/date.js"></script>
+    <script src="js/main.js"></script>
 
-<!-- Importação de CSS -->
-        <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.4.css">
-        <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.css">
-        <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.light.css">
-        <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.color.yellow.css">
-        <link rel="stylesheet" href="css/nativedroid/font-awesome.min.css">
-        <link rel="stylesheet" href="css/index.css">
-
-
+    <!-- Importação de CSS -->
+    <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.4.css">
+    <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.css">
+    <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.light.css">
+    <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.color.yellow.css">
+    <link rel="stylesheet" href="css/nativedroid/font-awesome.min.css">
+    <link rel="stylesheet" href="css/index.css">
 
 
-<!-- Aguardando Phonegap carregar -->
-<script>
-    document.addEventListener("deviceready", onDeviceReady, false);
-    function onDeviceReady() {
-    
+
+
+    <!-- Aguardando Phonegap carregar -->
+    <script>
+        document.addEventListener("deviceready", onDeviceReady, false);
+        function onDeviceReady() {
+
             // Native loading spinner
             if (window.spinnerplugin) {
                 $.extend($.mobile, {
@@ -44,24 +44,24 @@
                         var arg = arguments ? arguments[0] : '';
                         if (arg == 'show') spinnerplugin.show({'overlay':true});
                         else if (arg == 'hide') spinnerplugin.hide();           
-        
+
                         // Compatibility with jQM 1.4
                         return { loader: function() { } }
                     }
                 });
             }
-    }
-</script>
+        }
+    </script>
 
 
-<style>
-.ui-btn-active{color: #fff !important;background: #FFBD21 !important;}
-</style>
+    <style>
+        .ui-btn-active{color: #fff !important;background: #FFBD21 !important;}
+    </style>
 
-        <title>NU3 Project</title>
-    </head>
+    <title>NU3 Project</title>
+</head>
 
-    <body>
+<body>
 
 
 
@@ -86,18 +86,18 @@
 
 <div data-role="page" id="home" data-theme="b" data-cache="never" data-transition="slide">
     <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-            <ul data-role="listview">
-                <li><a href="#profile">Perfil</a></li>
-                <li><a href="#sobre">Sobre</a></li>
-                <li><a onClick="logout();">Sair</a></li>
-                <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-            </ul>
-            <br>
-     </div>
-      <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-            <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
-            <h1>Home</h1>
-      </div>
+        <ul data-role="listview">
+            <li><a href="#profile">Perfil</a></li>
+            <li><a href="#sobre">Sobre</a></li>
+            <li><a onClick="logout();">Sair</a></li>
+            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+        </ul>
+        <br>
+    </div>
+    <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
+        <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+        <h1>Home</h1>
+    </div>
     <div role="main" class="ui-content">
         <script id="home-tpl" type="text/x-handlebars-template">
                 <!--// LISTA DA TIMELINE -->
@@ -106,57 +106,56 @@
                     <center><label class="offlineTitle"> Modo Offline </label></center>
                     <hr class="prettyline">
                     {{#if this.hasFeed}}
-                        <label class="paddingFive"> Você tem {{qtd}} foto(s) para sincronizar </label>
+                    <label class="paddingFive"> Você tem {{qtd}} foto(s) para sincronizar </label>
                         <li><a href="#login" class="ui-state-persist"><i class='blIcon fa fa-cloud paddingFive'>  Sincronizar</i></a></li>
                         <hr class="prettyline">
                         {{#each this.feed}}
-                            <li><img src="data:image/png;base64,{{base64}}" alt="{{title}}">
+                        <li><img src="data:image/png;base64,{{base64}}" alt="{{title}}">
                             <h2><strong>{{title}}</strong></h2>
                             <p>Tirado em: {{data}}</p>
-                            </li>
+                        </li>
                         {{/each}}
                     {{else}}
-                    <p class="paddingFive"> Você está no modo offline, </p>
-                    <p class="paddingFive"> Nesse modo suas fotos são armazenadas localmente</p>
-                    <p class="paddingFive"> e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
+                        <p class="paddingFive"> Você está no modo offline, </p>
+                        <p class="paddingFive"> Nesse modo suas fotos são armazenadas localmente</p>
+                        <p class="paddingFive"> e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
                     {{/if}}
                 {{else}}
-                    
-                     {{#each this.feed}}
+
+                    {{#each this.feed}}
                         {{#if this.emptyWeek}}
-                            <hr class="prettyline">
-                            <center>
-                                <h3> Semana: {{date}} </h3>
-                            </center>
-                            <hr class="prettyline">
-                            <li><center>Sem coletas nessa semana</center></li>
+                        <hr class="prettyline">
+                        <center>
+                            <h3> Semana: {{date}} </h3>
+                        </center>
+                        <hr class="prettyline">
+                        <li><center>Sem coletas nessa semana</center></li>
                         {{else}}
                             {{#if this.firstPhotoOfTheWeek}}
-                                <hr class="prettyline">
-                                 <center>
-                                 <h3> Semana: {{firstPhotoOfTheWeek}} </h3>
-                                 </center>
-                                 <hr class="prettyline">
-                            {{/if}}
-                            <li><a data-parm="{{index}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}" alt="{{photo_label}}">
-                            <p class="position-right">
-                                {{#each this.stars}}
-                                 <img src="img/star_full.png" alt="star" width="10px" height="10px">
-                                 {{/each}}
-                                 {{#each this.starsEmpty}}
-                                 <img src="img/star_empty.png" alt="star" width="10px" height="10px">
-                                 {{/each}}
-                            </p>
-                            <h2 style="padding-left: 5px;"><strong>{{title}}</strong></h2>
-                            
-                            {{#if this.ultimoComentario}}
-                                <p>{{ultimoComentario}}</p>
-                            {{else}}
-                                <p>{{description}} </p>
-                            {{/if}}
+                            <hr class="prettyline">
+                            <center>
+                               <h3> Semana: {{firstPhotoOfTheWeek}} </h3>
+                           </center>
+                           <hr class="prettyline">
+                           {{/if}}
+                           <li><a data-parm="{{index}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}" alt="{{photo_label}}">
+                                <p class="position-right">
+                                    {{#each this.stars}}
+                                    <img src="img/star_full.png" alt="star" width="10px" height="10px">
+                                    {{/each}}
+                                    {{#each this.starsEmpty}}
+                                    <img src="img/star_empty.png" alt="star" width="10px" height="10px">
+                                    {{/each}}
+                                </p>
+                                <h2 style="padding-left: 5px;"><strong>{{title}}</strong></h2>
+
+                                {{#if this.ultimoComentario}}
+                                    <p>{{ultimoComentario}}</p>
+                                {{else}}
+                                    <p>{{description}} </p>
+                                {{/if}}
                             </a></li>
                         {{/if}}
-                        
                     {{/each}}
                     <div id="loading" align="center" style="display:none">
                         <p>Contatando o servidor e sincronizando...</p>
@@ -165,102 +164,100 @@
                     <a href="#" class="ui-state-persist button-style-1" onClick="loadMoreFeed()"><i class='blIcon fa fa-calendar paddingFive'> Carregar mais feed...</i></a>
                 {{/if}}
                 <!--// /LISTA DA TIMELINE -->
-        </script>
-        
-        <ul data-role="listview" id="feed-data">
-        </ul>
-    </div>
-    <!-- FOOTER -->
-            <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
-                <div data-role="navbar">
-                    <ul>
-                        <li><a href="#home" class="ui-btn-active ui-state-persist" data-icon="home" data-iconpos="top">Home</a></li>
-                        <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
-                    </ul>
-                </div>
-            </div>
-    <!-- /FOOTER -->
-</div>
+            </script>
 
-<!-- TELA DETALHES -->
-<div data-role="page" id="detalhes" data-theme="b" data-cache="never" data-direction="reverse">
-
-    <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-        <ul data-role="listview">
-            <li><a href="#profile">Perfil</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-        </ul>
-            <br>
-    </div>
-
-    <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-         <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
-         <h1>Detalhes</h1>
-    </div>
-
-    <div role="main" class="ui-content">
-        <div id="data-index"></div>
-        <script id="detail-tpl" type="text/x-handlebars-template">
-        <div align="center">
-            <img width="80%" src="data:image/png;base64,{{base64}}" alt="{{title}}">
+            <ul data-role="listview" id="feed-data">
+            </ul>
         </div>
-            <div id="hiddenID" style="display: none">{{id}}</div>
-            <div class="inner-content">
-                     <div class="estrelas-aumentada" align="center">
-                        {{#each this.stars}}
-                         <img src="img/star_full.png" alt="star" width="10px" height="10px">
-                         {{/each}}
-                         {{#each this.starsEmpty}}
-                         <img src="img/star_empty.png" alt="star" width="10px" height="10px">
-                         {{/each}}
-                     </div>
-                     <div style="text-align: center;">
-                     <strong>{{title}}</strong>
-                     </div>
-                     <p>
-                        <label class="data-label"> Enviado no dia {{date}} </label>
-                    </p>
-                    <hr class="prettyline">
-                    <h4><strong>Comentários</strong></h4>
-                    <div id="commentContainer">
-                    {{#each this.comments}}
-                    <p>
-                        <small>{{dataEnvio}}</small> 
-                        <span class="author" id="{{idComentario}}"><strong>{{nomeUsuario}}: </strong></span>
-                        {{texto}}
-                    </p>
-                    {{/each}}
-                    
-
-                    </div>
-                    </div>
-                    
-            </div>
-            
-        </script>
-        
-        <ul data-role="listview" id="details-data">
-        </ul>
-            <div id="comment-field">
-                    <label for="comentarioText" class="ui-hidden-accessible">Comentario:</label>
-                    <textarea name="comentario" id="comentarioText" placeholder="Escreva um comentário" class="comment-textbox"></textarea>
-                <div style="text-align:center; background-color: #FFBD21;">
-                    <input class="button-style-1" type="button" onClick="criaComentario()" value="Enviar" />
-                </div>
-           </div>
-        </div>
-     <!--</div>-->
-    <!-- FOOTER -->
+        <!-- FOOTER -->
         <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
             <div data-role="navbar">
                 <ul>
-                   <li><a href="#home" data-icon="home" data-iconpos="top">Home</a></li>
-                   <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
+                    <li><a href="#home" class="ui-btn-active ui-state-persist" data-icon="home" data-iconpos="top">Home</a></li>
+                    <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
                 </ul>
             </div>
         </div>
+        <!-- /FOOTER -->
+    </div>
+
+    <!-- TELA DETALHES -->
+    <div data-role="page" id="detalhes" data-theme="b" data-cache="never" data-direction="reverse">
+
+        <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
+            <ul data-role="listview">
+                <li><a href="#profile">Perfil</a></li>
+                <li><a href="#sobre">Sobre</a></li>
+                <li><a onClick="logout();">Sair</a></li>
+                <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+            </ul>
+            <br>
+        </div>
+
+        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
+           <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+           <h1>Detalhes</h1>
+       </div>
+
+       <div role="main" class="ui-content">
+        <div id="data-index"></div>
+        <script id="detail-tpl" type="text/x-handlebars-template">
+            <img class="{{class}}" src="data:image/png;base64,{{base64}}" alt="{{title}}">
+            <div id="hiddenID" style="display: none">{{id}}</div>
+            <div class="inner-content">
+               <div class="estrelas-aumentada" align="center">
+                {{#each this.stars}}
+                <img src="img/star_full.png" alt="star" width="10px" height="10px">
+                {{/each}}
+                {{#each this.starsEmpty}}
+                <img src="img/star_empty.png" alt="star" width="10px" height="10px">
+                {{/each}}
+            </div>
+            <div style="text-align: center;">
+               <strong>{{title}}</strong>
+           </div>
+           <p>
+            <label class="data-label"> Enviado no dia {{date}} </label>
+        </p>
+        <hr class="prettyline">
+        <h4><strong>Comentários</strong></h4>
+        <div id="commentContainer">
+            {{#each this.comments}}
+            <p>
+                <small>{{dataEnvio}}</small> 
+                <span class="author" id="{{idComentario}}"><strong>{{nomeUsuario}}: </strong></span>
+                {{texto}}
+            </p>
+            {{/each}}
+
+
+        </div>
+    </div>
+
+</div>
+
+</script>
+
+<ul data-role="listview" id="details-data">
+</ul>
+<div id="comment-field">
+    <label for="comentarioText" class="ui-hidden-accessible">Comentario:</label>
+    <textarea name="comentario" id="comentarioText" placeholder="Escreva um comentário" class="comment-textbox"></textarea>
+    <div style="text-align:center; background-color: #FFBD21;">
+        <input class="button-style-1" type="button" onClick="criaComentario()" value="Enviar" />
+    </div>
+</div>
+</div>
+<!--</div>-->
+<!-- FOOTER -->
+<div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
+    <div data-role="navbar">
+        <ul>
+         <li><a href="#home" data-icon="home" data-iconpos="top">Home</a></li>
+         <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
+     </ul>
+ </div>
+</div>
 <!-- /FOOTER -->
 
 </div>
@@ -269,68 +266,68 @@
 <!-- TELA LOGIN/CADASTRO -->
 <div data-role="page" id="login" data-theme="b" data-cache="never">
 
-      <div role="main" class="ui-content">
+  <div role="main" class="ui-content">
 
 
-        <div align="center">
+    <div align="center">
         <img src="img/logonu3.png" width="300px" height="200px"/>
     </div>
-        <div class="formLogin" data-role="fieldcontain">
-            <div style="align: center;">
-             <label for="mail" class="ui-hidden-accessible">Mail:</label>
-             <input type="text" name="mail" placeholder="Email" id="mail"/>
-                  
-             <label for="password" class="ui-hidden-accessible">Password:</label>
-             <input type="password" name="password" placeholder="Password" id="password"/>
-             </div>
-             <br>
-            <div id="loading" align="center" style="display:none">
-                <p>Contatando o servidor...</p>
-                <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-            </div>
-            <div id="sincronizando" align="center" style="display:none">
-                <p>Sincronizando imagens...</p>
-                <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-                <div id="state"></div>
-            </div>
-        
-            <div style="text-align:center; background-color: #FFBD21;">
-                <input data-role="button" type="button" onClick="login()" value="Conectar" />
-            </div>
-            </div>
-        
-        <p align="center">Não é usuário? <a href="#cadastro">Cadastre-se</a>.</p>
+    <div class="formLogin" data-role="fieldcontain">
+        <div style="align: center;">
+           <label for="mail" class="ui-hidden-accessible">Mail:</label>
+           <input type="text" name="mail" placeholder="Email" id="mail"/>
 
+           <label for="password" class="ui-hidden-accessible">Password:</label>
+           <input type="password" name="password" placeholder="Password" id="password"/>
+       </div>
+       <br>
+       <div id="loading" align="center" style="display:none">
+        <p>Contatando o servidor...</p>
+        <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
     </div>
+    <div id="sincronizando" align="center" style="display:none">
+        <p>Sincronizando imagens...</p>
+        <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+        <div id="state"></div>
+    </div>
+
+    <div style="text-align:center; background-color: #FFBD21;">
+        <input data-role="button" type="button" onClick="login()" value="Conectar" />
+    </div>
+</div>
+
+<p align="center">Não é usuário? <a href="#cadastro">Cadastre-se</a>.</p>
+
+</div>
 </div>
 
 
 <div data-role="page" id="cadastro" data-theme="b" style="overflow-y: hidden;">
     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b'>
         <a href="#login"><i class="fa fa-arrow-left"></i></a>
-            <h1>Cadastro</h1>
-      </div>
+        <h1>Cadastro</h1>
+    </div>
 
-      <div role="main" class="ui-content" style="overflow-y: hidden;">
+    <div role="main" class="ui-content" style="overflow-y: hidden;">
         <div class="formCadastro" data-role="fieldcontain">
             <div align="center">
-            
-            <label for="rusername" class="ui-hidden-accessible">Username:</label>
-            <input type="text"  id="rusername" name="rusername" placeholder="Username" />
+
+                <label for="rusername" class="ui-hidden-accessible">Username:</label>
+                <input type="text"  id="rusername" name="rusername" placeholder="Username" />
                 
-            <label for="rmail" class="ui-hidden-accessible">Mail:</label>
-            <input type="text" name="rmail" placeholder="Email" id="rmail" />
-            
-            <label for="rpassword" class="ui-hidden-accessible">Password:</label>
-            <input type="password" name="rpassword" placeholder="Password" id="rpassword" />
-            <label for="rpassword2" class="ui-hidden-accessible">Password Confirm:</label>
-            <input type="password" name="rpassword2" placeholder="Password Confirm" id="rpassword2" />
-        </div>
-            <div id="loading" align="center" style="display:none">
-                        <p>Contatando o servidor...</p>
-                        <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+                <label for="rmail" class="ui-hidden-accessible">Mail:</label>
+                <input type="text" name="rmail" placeholder="Email" id="rmail" />
+
+                <label for="rpassword" class="ui-hidden-accessible">Password:</label>
+                <input type="password" name="rpassword" placeholder="Password" id="rpassword" />
+                <label for="rpassword2" class="ui-hidden-accessible">Password Confirm:</label>
+                <input type="password" name="rpassword2" placeholder="Password Confirm" id="rpassword2" />
             </div>
-        
+            <div id="loading" align="center" style="display:none">
+                <p>Contatando o servidor...</p>
+                <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+            </div>
+
             <div style="text-align:center; background-color: #FFBD21;">
                 <input data-role="button" type="button" onClick="criaUsuario()" value="Cadastrar" />
             </div>
@@ -344,39 +341,39 @@
 <!-- TELA SOBRE -->
 <div data-role="page" id="sobre" data-theme="b" data-cache="never">
     <script>
-         $('.myPanel:visible').panel('open');
-    </script>
+       $('.myPanel:visible').panel('open');
+   </script>
 
-    <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-        <ul data-role="listview">
-            <li><a href="#profile">Perfil</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+   <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
+    <ul data-role="listview">
+        <li><a href="#profile">Perfil</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a onClick="logout();">Sair</a></li>
+        <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+    </ul>
+    <br>
+</div>
+
+<div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
+    <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+    <h1>Sobre</h1>
+</div>
+
+<div role="main" class="ui-content" style="overflow-y: hidden;">
+
+    tela sobre
+
+</div>
+
+<!-- FOOTER -->
+<div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
+    <div data-role="navbar">
+        <ul>
+            <li><a href="#home" class="ui-state-persist" data-icon="home" data-iconpos="top">Home</a></li>
+            <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
         </ul>
-            <br>
     </div>
-
-        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-            <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
-            <h1>Sobre</h1>
-        </div>
-
-    <div role="main" class="ui-content" style="overflow-y: hidden;">
-        
-        tela sobre
-
-    </div>
-
-    <!-- FOOTER -->
-        <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
-            <div data-role="navbar">
-                <ul>
-                    <li><a href="#home" class="ui-state-persist" data-icon="home" data-iconpos="top">Home</a></li>
-                    <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
-                </ul>
-            </div>
-        </div>
+</div>
 <!-- /FOOTER -->
 
 </div>
@@ -385,47 +382,44 @@
 <!-- TELA CAMERA -->
 <div data-role="page" id="camera" data-theme="b" data-cache="never">
     <script>
-         $('.myPanel:visible').panel('open');
-    </script>
+       $('.myPanel:visible').panel('open');
+   </script>
 
-    <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-        <ul data-role="listview">
-            <li><a href="#profile">Perfil</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+   <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
+    <ul data-role="listview">
+        <li><a href="#profile">Perfil</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a onClick="logout();">Sair</a></li>
+        <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+    </ul>
+    <br>
+</div>
+
+<div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
+    <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+    <h1>Camera</h1>
+</div>
+
+<div role="main" class="ui-content">
+    <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
+    <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
+    <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
+    <div id="hiddenBase64" style="display: none"></div>
+    <div id="imageContainer"></div>
+
+
+
+</div>
+
+<!-- FOOTER -->
+<div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
+    <div data-role="navbar">
+        <ul>
+            <li><a href="#home"  data-icon="home" data-iconpos="top">Home</a></li>
+            <li><a href="#" onClick="takePhoto();" class="ui-btn-active ui-state-persist" data-icon="camera" data-iconpos="top">Camera</a></li>
         </ul>
-            <br>
     </div>
-
-        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-            <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
-            <h1>Camera</h1>
-        </div>
-
-    <div role="main" class="ui-content">
-            <div id="hiddenBase64" style="display: none"></div>
-            <div id="imageContainer"></div>
-            <br>
-            <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
-            <br>
-            <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
-            <br>
-            <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
-            
-            
-
-    </div>
-
-    <!-- FOOTER -->
-        <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
-            <div data-role="navbar">
-                <ul>
-                    <li><a href="#home"  data-icon="home" data-iconpos="top">Home</a></li>
-                    <li><a href="#" onClick="takePhoto();" class="ui-btn-active ui-state-persist" data-icon="camera" data-iconpos="top">Camera</a></li>
-                </ul>
-            </div>
-        </div>
+</div>
 <!-- /FOOTER -->
 </div>
 <!-- /TELA CAMERA -->
@@ -433,55 +427,55 @@
 <!-- TELA PERFIL -->
 <div data-role="page" id="profile" data-theme="b" data-cache="never">
     <script>
-         $('.myPanel:visible').panel('open');
-    </script>
+       $('.myPanel:visible').panel('open');
+   </script>
 
-    <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-        <ul data-role="listview">
-            <li><a href="#profile">Perfil</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+   <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
+    <ul data-role="listview">
+        <li><a href="#profile">Perfil</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a onClick="logout();">Sair</a></li>
+        <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
+    </ul>
+    <br>
+</div>
+
+<div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
+    <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+    <h1>Perfil</h1>
+</div>
+
+<div role="main" class="ui-content">
+    <script id="perfil-tpl" type="text/x-handlebars-template">
+        <!-- DADOS PERFIL -->
+        <h2><strong>{{nome}}</strong></h2>
+        <p>{{email}}</p>
+        <li>
+            Acompanhado por: Dra. Avestruz
+        </li>
+        <li>
+            Iniciou tratamento em: 19/01/2014
+        </li>
+        <li>
+            Login válido até: 
+            {{dataExp}}
+        </li>
+        <!-- /DADOS -->
+    </script>  
+    <ul data-role="listview" id="perfil-data">  
+    </ul>
+
+</div>
+
+<!-- FOOTER -->
+<div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
+    <div data-role="navbar">
+        <ul>
+            <li><a href="#home"  data-icon="home" data-iconpos="top">Home</a></li>
+            <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
         </ul>
-            <br>
     </div>
-
-        <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-            <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
-            <h1>Perfil</h1>
-        </div>
-
-    <div role="main" class="ui-content">
-            <script id="perfil-tpl" type="text/x-handlebars-template">
-                <!-- DADOS PERFIL -->
-                 <h2><strong>{{nome}}</strong></h2>
-                <p>{{email}}</p>
-                <li>
-                    Acompanhado por: Dra. Avestruz
-                </li>
-                <li>
-                    Iniciou tratamento em: 19/01/2014
-                </li>
-                <li>
-                    Login válido até: 
-                    {{dataExp}}
-                </li>
-                <!-- /DADOS -->
-            </script>  
-        <ul data-role="listview" id="perfil-data">  
-        </ul>
-
-    </div>
-
-    <!-- FOOTER -->
-        <div data-id="foot1" data-position="fixed" data-role="footer" data-tap-toggle="false" data-theme='b'>
-            <div data-role="navbar">
-                <ul>
-                    <li><a href="#home"  data-icon="home" data-iconpos="top">Home</a></li>
-                    <li><a href="#" onClick="takePhoto();" data-icon="camera" data-iconpos="top">Camera</a></li>
-                </ul>
-            </div>
-        </div>
+</div>
 <!-- /FOOTER -->
 
 </div>
@@ -490,37 +484,37 @@
 <div data-role="page" id="error" data-cache="never">
     <div data-role="content" role="main" class="ui-content">
         <div align="center">
-           <img src="img/logonu3.png" width="150px" height="100px"/>
-        </div>
-        <div class="formLogin" data-role="fieldcontain">
+         <img src="img/logonu3.png" width="150px" height="100px"/>
+     </div>
+     <div class="formLogin" data-role="fieldcontain">
         <hr class="prettyline">
         <script id="error-tpl" type="text/x-handlebars-template">
-             <div class="error-content">
-                 <span>{{error}}</span>
-                 <p>{{msg}}</p>
-             </div>
-             <br>
-             <hr class="prettyline">
-             <div>
-                <a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
-             </div>
+           <div class="error-content">
+               <span>{{error}}</span>
+               <p>{{msg}}</p>
+           </div>
+           <br>
+           <hr class="prettyline">
+           <div>
+            <a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
+        </div>
 
-             {{#if offline}}
-             <hr class="prettyline">
-             <div>
-                <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
-             </div>
-             {{/if}}
-         </script>
+        {{#if offline}}
+        <hr class="prettyline">
+        <div>
+            <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
+        </div>
+        {{/if}}
+    </script>
 
-         <ul data-role="listview" id="error-data">  
-         </ul>
-         </div>
-    </div>
+    <ul data-role="listview" id="error-data">  
+    </ul>
+</div>
+</div>
 </div>
 <!-- /TELA ERRO -->
 
 
-   </body>
+</body>
 
 </html>

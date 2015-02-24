@@ -183,3 +183,30 @@
     position: fixed;
     bottom: 100px; 
 }
+
+.landscapePreview{
+    width: 100%;  
+}
+
+.portraitPreview{
+   height: 50%;
+   display: block;
+   margin-left: auto;
+   margin-right: auto;
+}
+
+.landscapeImage{
+    display: block;
+    width: 95%;
+    background-color: #FFBD21;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.portraitImage{
+    display: block;
+    height: 45%;
+    background-color: #FFBD21;
+    margin-left: auto;
+    margin-right: auto;
+}
