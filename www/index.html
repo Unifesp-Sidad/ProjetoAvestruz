@@ -85,17 +85,8 @@
 -->
 
 <div data-role="page" id="home" data-theme="b" data-cache="never" data-transition="slide">
-    <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-        <ul data-role="listview">
-            <li><a href="#profile">Perfil</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a onClick="logout();">Sair</a></li>
-            <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-        </ul>
-        <br>
-    </div>
     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-        <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+        <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
         <h1>Home</h1>
     </div>
     <div role="main" class="ui-content">
@@ -183,19 +174,8 @@
 
     <!-- TELA DETALHES -->
     <div data-role="page" id="detalhes" data-theme="b" data-cache="never" data-direction="reverse">
-
-        <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-            <ul data-role="listview">
-                <li><a href="#profile">Perfil</a></li>
-                <li><a href="#sobre">Sobre</a></li>
-                <li><a onClick="logout();">Sair</a></li>
-                <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-            </ul>
-            <br>
-        </div>
-
         <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-           <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+           <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
            <h1>Detalhes</h1>
        </div>
 
@@ -340,22 +320,8 @@
 
 <!-- TELA SOBRE -->
 <div data-role="page" id="sobre" data-theme="b" data-cache="never">
-    <script>
-       $('.myPanel:visible').panel('open');
-   </script>
-
-   <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-    <ul data-role="listview">
-        <li><a href="#profile">Perfil</a></li>
-        <li><a href="#sobre">Sobre</a></li>
-        <li><a onClick="logout();">Sair</a></li>
-        <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-    </ul>
-    <br>
-</div>
-
 <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-    <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+    <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
     <h1>Sobre</h1>
 </div>
 
@@ -381,34 +347,18 @@
 
 <!-- TELA CAMERA -->
 <div data-role="page" id="camera" data-theme="b" data-cache="never">
-    <script>
-       $('.myPanel:visible').panel('open');
-   </script>
-
-   <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-    <ul data-role="listview">
-        <li><a href="#profile">Perfil</a></li>
-        <li><a href="#sobre">Sobre</a></li>
-        <li><a onClick="logout();">Sair</a></li>
-        <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-    </ul>
-    <br>
-</div>
-
-<div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-    <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+<div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' class="no-scroll">
+    <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
     <h1>Camera</h1>
 </div>
 
 <div role="main" class="ui-content">
     <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
+    <p id="warning" class="hidden error-message">Por favor, entre com um título não-vazio.</p>
     <button style="background-color:#FFBD21;" data-role="button" onClick="criaImagem();">Enviar</button>
     <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
-    <div id="hiddenBase64" style="display: none"></div>
+    <div id="hiddenBase64" class="hidden"></div>
     <div id="imageContainer"></div>
-
-
-
 </div>
 
 <!-- FOOTER -->
@@ -426,28 +376,20 @@
 
 <!-- TELA PERFIL -->
 <div data-role="page" id="profile" data-theme="b" data-cache="never">
-    <script>
-       $('.myPanel:visible').panel('open');
-   </script>
-
-   <div data-role="panel" class="myPanel" data-display="push" data-theme="b">
-    <ul data-role="listview">
-        <li><a href="#profile">Perfil</a></li>
-        <li><a href="#sobre">Sobre</a></li>
-        <li><a onClick="logout();">Sair</a></li>
-        <li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li>
-    </ul>
-    <br>
-</div>
+    
 
 <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
-    <a href="#myPanel" data-ajax="false"><i onClick="$('.myPanel:visible').panel('open');" class='fa fa-bars'></i></a>
+    <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
     <h1>Perfil</h1>
 </div>
 
 <div role="main" class="ui-content">
     <script id="perfil-tpl" type="text/x-handlebars-template">
         <!-- DADOS PERFIL -->
+        {{#if this.offline}}
+            <h2 class="offlineTitle paddingFive"><strong>Você está em Modo Offline</strong></h2>
+            <p class="paddingFive">Para acessar suas informações de perfil, por favor ative sua rede de internet e logue-se novamente no aplicativo.</p>
+        {{else}}
         <h2><strong>{{nome}}</strong></h2>
         <p>{{email}}</p>
         <li>
@@ -460,6 +402,7 @@
             Login válido até: 
             {{dataExp}}
         </li>
+        {{/if}}
         <!-- /DADOS -->
     </script>  
     <ul data-role="listview" id="perfil-data">  
@@ -502,7 +445,7 @@
         {{#if offline}}
         <hr class="prettyline">
         <div>
-            <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
+            <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="activeOfflineMode();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
         </div>
         {{/if}}
     </script>

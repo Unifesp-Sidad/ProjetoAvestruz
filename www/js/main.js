@@ -10,7 +10,14 @@ var storeParameters = {
 	weekends: 0,
 	refresh: true
 }
-// Create the XHR object.
+//Painel lateral template:
+var panel = '<div data-role="panel" id="myPanel" data-position="left" data-display="push" data-theme="a"><ul data-role="listview"><li><a href="#profile">Perfil</a></li><li><a href="#sobre">Sobre</a></li><li><a onClick="logout();">Logout</a></li><li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li></ul><br><img src="img/logonu3.png" class="painel-img"/><p class="painel-message">Seu aplicativo de acompanhamento nutricional.</p><div class="ui-footer ui-bar-a"><h4 class="ui-title">Visite:</h4><a href="http://nu3.strikingly.com/" rel="external" target="_blank">nu3.strikingly.com</a></div></div>';
+//Antes de criar as paginas, será colocado o painel lateral
+$(document).one('pagebeforecreate', function () {
+    $.mobile.pageContainer.prepend(panel);
+    $("#myPanel").panel().enhanceWithin();
+});
+
 $(document).on('pagebeforeshow', '#home', function(){
 	var user = JSON.parse(window.localStorage.getItem("user"));
 	if (user == null && networkStatus == true){
@@ -119,14 +126,21 @@ $('#detalhes').on('pagehide', function (event, ui) {
 
 $(document).on('pageinit', '#profile', function(){
 	$('#perfil-data').empty(); 
-	var user = JSON.parse(window.localStorage.getItem("user"));
-	console.log("PERFIL USER DATA: " + JSON.stringify(user));
-	var context = {
-	  "nome" : user.nomeUsuario,
-	  "email" : user.email,
-	  "id" : user.idUsuario,
-	  "token" : user.token,
-	  "dataExp" : user.dataExpiracao
+	if(networkStatus){
+		var user = JSON.parse(window.localStorage.getItem("user"));
+		console.log("PERFIL USER DATA: " + JSON.stringify(user));
+		var context = {
+		  "nome" : user.nomeUsuario,
+		  "email" : user.email,
+		  "id" : user.idUsuario,
+		  "token" : user.token,
+		  "dataExp" : user.dataExpiracao
+		}
+	}
+	else{
+		var context = {
+			"offline" : true
+		}
 	}
 	var perfilPage = Handlebars.compile($("#perfil-tpl").html());;
 	$('#perfil-data').html(perfilPage(context));
@@ -394,6 +408,9 @@ function criaImagem(){
 			ic.innerHTML = "";
 			$.mobile.changePage("#home");
 		}
+	}
+	else{
+		$("#warning").toggle();
 	}
 }
 
