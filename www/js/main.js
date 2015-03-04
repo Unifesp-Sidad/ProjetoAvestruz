@@ -231,6 +231,7 @@ function login(){
         var mail= $("#mail").val();
         var password= $("#password").val(); 
 		var dataE = { "email": mail, "senha":password};
+		$('#loading').toggle();
 		//$('#loading').show();
 		$.ajax( {
 			type: "POST",
@@ -255,7 +256,7 @@ function login(){
 			},
 			error: function (e) {
 				console.log("Login Retorno: ERROR! = " + JSON.stringify(e));
-				$('#loading').hide();
+				$('#loading').toggle();
 				$("#password").val(""); 
 				var context = { };
 				if(e.responseJSON && e.responseJSON.msg == "Erro de login"){
@@ -268,6 +269,7 @@ function login(){
 					}
 				}
 				else{
+					console.log("Message do error = " + e.statusText);
 					context = {
 					  "error" : "Erro de conexão",
 					  "link" : "#login",
@@ -277,9 +279,12 @@ function login(){
 					}
 					networkStatus = false;
 				}
-				window.localStorage.removeItem("user");
+				if(localStorage.getItem("user")){
+					window.localStorage.removeItem("user");
+				}
+				console.log("Changing page to 'Error'");
 				$.mobile.changePage("#error");
-				var errorPage = Handlebars.compile($("#error-tpl").html());;
+				var errorPage = Handlebars.compile($("#error-tpl").html());
 				$('#error-data').html(errorPage(context));
 				$('#error-data').listview('refresh');
 			}
@@ -543,7 +548,9 @@ function recuperaImagemData(dataInicio, dataFim){
 					  "offline" : true
 					}
 				}
-				window.localStorage.removeItem("user");
+				if(localStorage.getItem("user")){
+					window.localStorage.removeItem("user");
+				}
 				$.mobile.changePage("#error");
 				var errorPage = Handlebars.compile($("#error-tpl").html());;
 				$('#error-data').html(errorPage(context));
