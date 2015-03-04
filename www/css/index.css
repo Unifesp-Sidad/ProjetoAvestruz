@@ -247,3 +247,9 @@
   right: 0;
   padding-bottom: 15px;
 }
+
+.url{
+  text-align: center;
+  font-weight: bold;
+  font-style: italic;
+}
