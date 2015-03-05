@@ -11,6 +11,10 @@
                         {
                             "xml": "<feature name=\"Camera\"><param name=\"android-package\" value=\"org.apache.cordova.camera.CameraLauncher\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Aviary\"><param name=\"android-package\" value=\"com.m1is.aviary.Aviary\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -22,6 +26,34 @@
                             "xml": "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />",
                             "count": 1
                         }
+                    ],
+                    "/manifest": [
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.INTERNET\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.VIBRATE\" />",
+                            "count": 1
+                        }
+                    ],
+                    "/manifest/application": [
+                        {
+                            "xml": "<activity android:configChanges=\"orientation|keyboardHidden|screenSize\" android:hardwareAccelerated=\"true\" android:largeHeap=\"true\" android:name=\"com.aviary.android.feather.FeatherActivity\" android:screenOrientation=\"unspecified\" android:theme=\"@style/AviaryTheme\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<receiver android:exported=\"true\" android:name=\"com.aviary.android.feather.library.receivers.AviarySystemReceiver\" android:process=\":aviary_standalone_system_receiver\"><intent-filter><action android:name=\"android.intent.action.PACKAGE_ADDED\" /><action android:name=\"android.intent.action.PACKAGE_REMOVED\" /><action android:name=\"android.intent.action.PACKAGE_REPLACED\" /><data android:scheme=\"package\" /></intent-filter></receiver>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<meta-data android:name=\"com.aviary.android.feather.v1.API_KEY\" android:value=\"dbc1109b282e01c0\" />",
+                            "count": 1
+                        }
                     ]
                 }
             }
@@ -29,6 +61,9 @@
     },
     "installed_plugins": {
         "org.apache.cordova.camera": {
+            "PACKAGE_NAME": "br.example.avestruz"
+        },
+        "com.m1is.aviary": {
             "PACKAGE_NAME": "br.example.avestruz"
         }
     },

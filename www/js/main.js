@@ -18,6 +18,22 @@ $(document).one('pagebeforecreate', function () {
     $("#myPanel").panel().enhanceWithin();
 });
 
+Base64 = {
+    getBase64ImageFromInput : function (input, callback) {
+        var imageReader = new FileReader();
+        imageReader.onloadend = function (evt) {
+            if (callback)
+            	console.log("Base64 encode event result: " + evt.target.result);
+                callback(evt.target.result);
+        };
+        //Start the asynchronous data read.
+        imageReader.readAsDataURL(input);
+    },
+    formatImageSrcString : function (base64) {
+        return (base64.match(/(base64)/))? base64 : "data:image/jpeg;base64," + base64;
+    }
+};
+
 $(document).on('pagebeforeshow', '#home', function(){
 	var user = JSON.parse(window.localStorage.getItem("user"));
 	if (user == null && networkStatus == true){
@@ -325,14 +341,24 @@ function clearCache(){
 	window.localStorage.removeItem("user");
 }
 
-function criaImagem(){
+function prepareImagem(){
+	var nome = $("#photoTitle").val();
+	var node = document.getElementById('hiddenBase64');
+	var base = node.innerHTML;
+	if(nome.length > 0){
+		criaImagem(nome, base);
+	}
+	else{
+		$("#warning").toggle();
+	}
+}
+
+function criaImagem(nome, base64){
 	var nome = $("#photoTitle").val();
 	//var text = $("#photoDesciption").val();
-	var node = document.getElementById('hiddenBase64');
-	var base64 = node.innerHTML;
+	console.log("Base64 recuperado: " + base64);
 	//console.log("Base retirado do HTML = " + base64);
 	console.log("Criar foto modo online? " + networkStatus );
-	if(nome.length > 0){
 		if(networkStatus == true){
 			var user = JSON.parse(window.localStorage.getItem("user"));
 			var token = user.token;
@@ -349,7 +375,7 @@ function criaImagem(){
 					console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
 					$("#photoTitle").val("");
 					$("#photoDesciption").val("");
-					node.innerHTML = "";
+					document.getElementById('hiddenBase64').innerHTML = "";
 					var ic = document.getElementById('imageContainer');
 					ic.innerHTML = "";
 					storeParameters.refresh = true;
@@ -413,10 +439,6 @@ function criaImagem(){
 			ic.innerHTML = "";
 			$.mobile.changePage("#home");
 		}
-	}
-	else{
-		$("#warning").toggle();
-	}
 }
 
 
@@ -707,10 +729,11 @@ function loadMoreFeed(){
 
 function takePhoto() {
 	navigator.camera.getPicture(onCameraSuccess, onCameraError, {
-		quality : 50,
+		quality : 85,
 		destinationType : Camera.DestinationType.DATA_URL,
 		allowEdit : true,
 		targetWidth: 640,
+		targetHeight: 640,
 		encodingType : Camera.EncodingType.JPEG,
 		sourceType: Camera.PictureSourceType.CAMERA,
 		correctOrientation: true,
@@ -718,9 +741,35 @@ function takePhoto() {
 	});
 }
 
-function onCameraSuccess(imageURL) {
-	$.mobile.changePage($('#camera'));
-	var imgData = 'data:image/png;base64,' + imageURL;
+function onCameraSuccess(imageData) {
+	/*var tools = cordova.plugins.Aviary.Tools;
+	cordova.plugins.Aviary.show({
+            imageURI: imageURI,
+            outputFormat: cordova.plugins.Aviary.OutputFormat.JPEG,
+            quality: 90,
+            toolList: [
+                tools.CROP, tools.ENHANCE, tools.EFFECTS
+            ],
+            hideExitUnsaveConfirmation: false,
+            enableEffectsPacks: true,
+            enableFramesPacks: true,
+            enableStickersPacks: true,
+            disableVibration: false,
+            folderName: "Nu3",
+            success: function (result) {
+                var editedImageFileName = result.name;
+                var editedImageURI = result.src;
+                alert("File name: " + editedImageFileName + ", Image URI: " + editedImageURI);
+                
+            },
+            error: function (message) {
+                alert(message);
+            }
+    });
+	*/
+    $.mobile.changePage($('#camera'));
+	
+	var imgData = 'data:image/png;base64,' + imageData;
 	var img = new Image();
 	
 	img.onload = function(){
@@ -732,14 +781,18 @@ function onCameraSuccess(imageURL) {
 		else{
 			imgClass = "portraitPreview";
 		}
-		var ic = document.getElementById('imageContainer');
 		console.log("Imagem Class = " + imgClass);
-		ic.innerHTML = '<img class="' + imgClass + '" src="data:image/png;base64,' + imageURL + '"/>';
+		var ic = document.getElementById('imageContainer');
+		//Caso trabalhe com base64 use a seguinte linha:
+		ic.innerHTML = '<img class="' + imgClass + '" src="data:image/png;base64,' + imageData + '"/>';
+		//Caso trabalhe com FILE_URI, utilize a seguinte linha:
+		//ic.innerHTML = '<img src="' + imageURI + '" width="95%"/>';
+		//Encoda a imagem para base64 para poder enviar para o servidor após confirmação
+	    var node = document.getElementById('hiddenBase64');
+		node.innerHTML = imageData;
 	}
 	img.src = imgData;
-	var node = document.getElementById('hiddenBase64');
-	node.innerHTML = imageURL;
-	//console.log("Base64 salvado na div invisivel: " + document.getElementById('hiddenBase64').innerHTML);
+	
 }
 
 function onCameraError(e) {
@@ -748,6 +801,21 @@ function onCameraError(e) {
 	event.stopPropagation();
 	$.mobile.changePage($('#home'));
 	navigator.notification.alert("onCameraError: " + e + "(" + e.code + ")");
+}
+
+function getBase64FromImageUrl(URL) {
+    var img = new Image();
+    img.onload = function () {
+	    var canvas = document.createElement("canvas");
+	    canvas.width =this.width;
+	    canvas.height =this.height;
+	    var ctx = canvas.getContext("2d");
+	    ctx.drawImage(this, 0, 0);
+	    var dataURL = canvas.toDataURL("image/png");
+	    console.log(  dataURL.replace(/^data:image\/(png|jpg);base64,/, ""));
+	    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+    }
+    img.src = URL;
 }
 
 function synchronize(){
