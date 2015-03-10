@@ -15,6 +15,10 @@
                         {
                             "xml": "<feature name=\"Aviary\"><param name=\"android-package\" value=\"com.m1is.aviary.Aviary\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Device\"><param name=\"android-package\" value=\"org.apache.cordova.device.Device\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -64,6 +68,9 @@
             "PACKAGE_NAME": "br.example.avestruz"
         },
         "com.m1is.aviary": {
+            "PACKAGE_NAME": "br.example.avestruz"
+        },
+        "org.apache.cordova.device": {
             "PACKAGE_NAME": "br.example.avestruz"
         }
     },

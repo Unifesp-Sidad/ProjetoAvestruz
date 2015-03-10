@@ -18,22 +18,6 @@ $(document).one('pagebeforecreate', function () {
     $("#myPanel").panel().enhanceWithin();
 });
 
-Base64 = {
-    getBase64ImageFromInput : function (input, callback) {
-        var imageReader = new FileReader();
-        imageReader.onloadend = function (evt) {
-            if (callback)
-            	console.log("Base64 encode event result: " + evt.target.result);
-                callback(evt.target.result);
-        };
-        //Start the asynchronous data read.
-        imageReader.readAsDataURL(input);
-    },
-    formatImageSrcString : function (base64) {
-        return (base64.match(/(base64)/))? base64 : "data:image/jpeg;base64," + base64;
-    }
-};
-
 $(document).on('pagebeforeshow', '#home', function(){
 	var user = JSON.parse(window.localStorage.getItem("user"));
 	if (user == null && networkStatus == true){
@@ -373,12 +357,8 @@ function criaImagem(nome, base64){
 				async: false,
 				success: function (data){
 					console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
-					$("#photoTitle").val("");
-					$("#photoDesciption").val("");
-					document.getElementById('hiddenBase64').innerHTML = "";
-					var ic = document.getElementById('imageContainer');
-					ic.innerHTML = "";
 					storeParameters.refresh = true;
+					clearPhotoEntries();
 					$.mobile.changePage("#home");
 				},
 				error: function (e) {
@@ -439,6 +419,15 @@ function criaImagem(nome, base64){
 			ic.innerHTML = "";
 			$.mobile.changePage("#home");
 		}
+}
+
+function clearPhotoEntries(){
+	$("#photoTitle").val("");
+	$("#photoDesciption").val("");
+	document.getElementById('hiddenBase64').innerHTML = "";
+	var ic = document.getElementById('imageContainer');
+	ic.innerHTML = "";
+
 }
 
 
@@ -730,7 +719,7 @@ function loadMoreFeed(){
 function takePhoto() {
 	navigator.camera.getPicture(onCameraSuccess, onCameraError, {
 		quality : 85,
-		destinationType : Camera.DestinationType.DATA_URL,
+		destinationType : Camera.DestinationType.IMAGE_URI,
 		allowEdit : true,
 		targetWidth: 640,
 		targetHeight: 640,
@@ -742,33 +731,9 @@ function takePhoto() {
 }
 
 function onCameraSuccess(imageData) {
-	/*var tools = cordova.plugins.Aviary.Tools;
-	cordova.plugins.Aviary.show({
-            imageURI: imageURI,
-            outputFormat: cordova.plugins.Aviary.OutputFormat.JPEG,
-            quality: 90,
-            toolList: [
-                tools.CROP, tools.ENHANCE, tools.EFFECTS
-            ],
-            hideExitUnsaveConfirmation: false,
-            enableEffectsPacks: true,
-            enableFramesPacks: true,
-            enableStickersPacks: true,
-            disableVibration: false,
-            folderName: "Nu3",
-            success: function (result) {
-                var editedImageFileName = result.name;
-                var editedImageURI = result.src;
-                alert("File name: " + editedImageFileName + ", Image URI: " + editedImageURI);
-                
-            },
-            error: function (message) {
-                alert(message);
-            }
-    });
-	*/
     $.mobile.changePage($('#camera'));
-	
+	//Caso a camera trabalhe com base64 use esse trecho de codigo:
+	/*
 	var imgData = 'data:image/png;base64,' + imageData;
 	var img = new Image();
 	
@@ -783,16 +748,14 @@ function onCameraSuccess(imageData) {
 		}
 		console.log("Imagem Class = " + imgClass);
 		var ic = document.getElementById('imageContainer');
-		//Caso trabalhe com base64 use a seguinte linha:
 		ic.innerHTML = '<img class="' + imgClass + '" src="data:image/png;base64,' + imageData + '"/>';
-		//Caso trabalhe com FILE_URI, utilize a seguinte linha:
-		//ic.innerHTML = '<img src="' + imageURI + '" width="95%"/>';
-		//Encoda a imagem para base64 para poder enviar para o servidor após confirmação
-	    var node = document.getElementById('hiddenBase64');
 		node.innerHTML = imageData;
 	}
 	img.src = imgData;
-	
+	*/
+	//Caso trabalhe com FILE_URI, utilize o seguinte trecho de codigo:
+	console.log("Tentando encode para base64");
+	getBase64FromImageUrl(imageData);
 }
 
 function onCameraError(e) {
@@ -803,8 +766,33 @@ function onCameraError(e) {
 	navigator.notification.alert("onCameraError: " + e + "(" + e.code + ")");
 }
 
-function getBase64FromImageUrl(URL) {
+encodeImageUri = function(imageUri, callback) {
+    var c = document.createElement('canvas');
+    var ctx = c.getContext("2d");
     var img = new Image();
+    img.onload = function() {
+        c.width = this.width;
+        c.height = this.height;
+        ctx.drawImage(img, 0, 0);
+
+        if(typeof callback === 'function'){
+            var dataURL = c.toDataURL("image/jpeg");
+            //console.log("DataURL original: " + dataURL);
+            callback(dataURL.slice(22, dataURL.length));
+        }
+    };
+    img.src = imageUri;
+}
+
+function getBase64FromImageUrl(URL) {
+	encodeImageUri(URL, function(base64){
+		 console.log("Callback Return: " + base64);
+		 var ic = document.getElementById('imageContainer');
+		 ic.innerHTML = '<img src="data:image/png;base64,' + base64 + '" class="squareImage"/>';
+		 var node = document.getElementById('hiddenBase64');
+		 node.innerHTML = base64;
+	});
+    /*var img = new Image();
     img.onload = function () {
 	    var canvas = document.createElement("canvas");
 	    canvas.width =this.width;
@@ -815,7 +803,7 @@ function getBase64FromImageUrl(URL) {
 	    console.log(  dataURL.replace(/^data:image\/(png|jpg);base64,/, ""));
 	    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
     }
-    img.src = URL;
+    img.src = URL;*/
 }
 
 function synchronize(){

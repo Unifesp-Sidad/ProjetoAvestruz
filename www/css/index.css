@@ -211,6 +211,14 @@
     margin-right: auto;
 }
 
+.squareImage{
+    display: block;
+    width: 85%;
+    background-color: #FFBD21;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .no-scroll{
   overflow-y: hidden !important;
   min-height: 0px !important;
