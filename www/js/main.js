@@ -7,8 +7,8 @@ var storeParameters = {
 	inicio: null,
 	feed: null,
 	feedSize: 0,
-	weekends: 0
-,	refresh: true
+	weekends: 0,	
+	refresh: true
 }
 //Painel lateral template:
 var panel = '<div data-role="panel" id="myPanel" data-position="left" data-display="push" data-theme="a"><ul data-role="listview"><li><a href="#profile">Perfil</a></li><li><a href="#sobre">Sobre</a></li><li><a onClick="logout();">Logout</a></li><li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li></ul><br><img src="img/logonu3.png" class="painel-img"/><p class="painel-message">Seu aplicativo de acompanhamento nutricional.</p><div class="ui-footer ui-bar-a"><h4 class="ui-title">Visite:</h4><a href="http://nu3.strikingly.com/" rel="external" target="_blank">nu3.strikingly.com</a></div></div>';
@@ -412,11 +412,7 @@ function criaImagem(nome, base64){
 			}
 			console.log("Offline lib = " + JSON.stringify(offlineImagensLib));
 			window.localStorage.setItem("offlineLib", JSON.stringify(offlineImagensLib));
-			$("#photoTitle").val("");
-			$("#photoDesciption").val("");
-			node.innerHTML = "";
-			var ic = document.getElementById('imageContainer');
-			ic.innerHTML = "";
+			clearPhotoEntries();
 			$.mobile.changePage("#home");
 		}
 }
