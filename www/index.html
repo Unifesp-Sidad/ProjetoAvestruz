@@ -35,6 +35,8 @@
     <script>
         document.addEventListener("deviceready", onDeviceReady, false);
         function onDeviceReady() {
+            document.addEventListener("offline", turnOffline, false);
+            document.addEventListener("online", turnOnline, false);
 
             // Native loading spinner
             if (window.spinnerplugin) {
@@ -278,6 +280,11 @@
 
 <p align="center">Não é usuário? <a href="#cadastro">Cadastre-se</a>.</p>
 
+        <hr class="prettyline">
+        <div>
+            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Entrar em Modo Offline</span></span></a>
+        </div>
+
 </div>
 </div>
 
@@ -457,7 +464,7 @@
         {{#if offline}}
         <hr class="prettyline">
         <div>
-            <a href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="activeOfflineMode();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
+            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
         </div>
         {{/if}}
     </script>

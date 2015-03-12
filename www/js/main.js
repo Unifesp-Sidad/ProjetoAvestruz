@@ -155,16 +155,6 @@ jQuery('div').on('pagehide', function(event, ui){
     page.remove();
   };
 });
-//Função para interceptar o evento do click do botão físico BACK
-/*$(document).bind('keydown', function(event) {
-  if (event.keyCode == 27) {
-    // Prevent default (disable the back button behavior)
-    event.preventDefault();
-	console.log("Backbutton Prevent Method Triggered!");
-	$.mobile.changepage($('#home'));
-    // Your code to show another page or whatever...
-  }
-});*/
 
 $(window).on("navigate", function (event, data) {
   console.log("Navigate Event Triggered!");
@@ -242,7 +232,8 @@ function login(){
 			async: false,
 			success: function(data){
 				//console.log("login retrun: " + data);
-				data.email = dataE.email;	
+				data.email = dataE.email;
+				console.log("User data: " + JSON.stringify(data));	
 				window.localStorage.setItem("user", JSON.stringify(data));
 				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 				if(offlineLib && offlineLib["size"] > 0){
@@ -278,9 +269,6 @@ function login(){
 					  "offline" : true
 					}
 					networkStatus = false;
-				}
-				if(localStorage.getItem("user")){
-					window.localStorage.removeItem("user");
 				}
 				console.log("Changing page to 'Error'");
 				$.mobile.changePage("#error");
@@ -341,13 +329,16 @@ function criaImagem(nome, base64){
 	var nome = $("#photoTitle").val();
 	//var text = $("#photoDesciption").val();
 	console.log("Base64 recuperado: " + base64);
+	var currentDate = Date.parse("now");
+	var day = currentDate.toString("dd/MM");
+	var hour = currentDate.toString("HH:mm");
 	//console.log("Base retirado do HTML = " + base64);
 	console.log("Criar foto modo online? " + networkStatus );
 		if(networkStatus == true){
 			var user = JSON.parse(window.localStorage.getItem("user"));
 			var token = user.token;
 			var date =  new Date();
-			var dataE = {"token" : token, "nomeFoto" : nome , "descricao" : "" , "base64code" : base64};
+			var dataE = {"token" : token, "nomeFoto" : nome , "descricao" : currentDate.getTime() , "base64code" : base64};
 			$.ajax( {
 				type: "POST",
 				url: urlService + "image/criaImagem",
@@ -379,7 +370,6 @@ function criaImagem(nome, base64){
 						  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
 						}
 					}
-					window.localStorage.removeItem("user");
 					$.mobile.changePage("#error");
 					var errorPage = Handlebars.compile($("#error-tpl").html());;
 					$('#error-data').html(errorPage(context));
@@ -387,9 +377,7 @@ function criaImagem(nome, base64){
 			});
 		}
 		else{
-			var currentDate = Date.parse("now");
-			var day = currentDate.toString("dd/MM");
-			var hour = currentDate.toString("HH:mm");
+			
 			var image = {
 				"currentDate": currentDate,
 				"millis": currentDate.getTime(),
@@ -850,6 +838,60 @@ function synchronize(){
 		}
 	}
 	window.localStorage.removeItem("offlineLib");
+}
+
+function checkConnection() {
+    var networkState = navigator.connection.type;
+
+    var states = {};
+    states[Connection.UNKNOWN]  = 'Unknown connection';
+    states[Connection.ETHERNET] = 'Ethernet connection';
+    states[Connection.WIFI]     = 'WiFi connection';
+    states[Connection.CELL_2G]  = 'Cell 2G connection';
+    states[Connection.CELL_3G]  = 'Cell 3G connection';
+    states[Connection.CELL_4G]  = 'Cell 4G connection';
+    states[Connection.CELL]     = 'Cell generic connection';
+    states[Connection.NONE]     = 'No network connection';
+
+    alert('Connection type: ' + states[networkState]);
+}
+
+function turnOffline(){
+	if(networkStatus == true){
+		networkStatus = false;
+		console.log("Modo offline triggered!!!");
+		var user = JSON.parse(window.localStorage.getItem("user"));
+		var today = Date.today().getTime();
+		if (user != null) console.log("Token expirado? " + today + " >>> " + user.dataExpiracao.getTime())
+		if (user == null || today > Date.parse(user.dataExpiracao).getTime()){
+			$.mobile.changePage($('#login'));
+		}
+		else{
+			goHome();	
+		}
+		
+	}
+}
+
+function turnOnline(){
+	if (networkStatus == false){
+		networkStatus = true;
+		console.log("Modo online triggered!!!");
+		var user = JSON.parse(window.localStorage.getItem("user"));
+		if (user == null){
+			$.mobile.changePage($('#login'));
+		}
+		else{
+			goHome();	
+		}
+	}
+}
+
+function goHome(){
+	if ($('.ui-page-active').attr('id') == 'home'){
+		window.location.reload();
+	}
+	else $.mobile.changePage($('#home'));
 }
 
 
