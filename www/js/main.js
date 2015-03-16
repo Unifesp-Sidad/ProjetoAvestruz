@@ -40,6 +40,8 @@ $(document).on('pagebeforeshow', '#home', function(){
 			context = homeContext(storeParameters.inicio, hoje);
 			$('#loading').hide();
 		}
+		context.user = user;
+		$('#tokenDate').html(user.tokenDate);
 		var homePage = Handlebars.compile($("#home-tpl").html());;
 		$('#feed-data').html(homePage(context));
 		$('#feed-data').listview('refresh');
@@ -233,17 +235,24 @@ function login(){
 			success: function(data){
 				//console.log("login retrun: " + data);
 				data.email = dataE.email;
+				var date = data.dataExpiracao.toString().slice(0,data.dataExpiracao.length - 12);
+				console.log("Data cortada = " + date);
+				data.tokenDate = date;
+				var parsedDate = Date.parse(date);
+				console.log("parseDate? = " + parsedDate);
+				//console.log("Tipo de objeto na expiracao: " + Object.prototype.toString.call(data.dataExpiracao));
+				data.tokenTimeStamp = parsedDate.getTime();
 				console.log("User data: " + JSON.stringify(data));	
 				window.localStorage.setItem("user", JSON.stringify(data));
 				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
+				networkStatus = true;
 				if(offlineLib && offlineLib["size"] > 0){
 
 					synchronize();
 				}
-				networkStatus = true;
-				
-				
-				$.mobile.changePage("#home");
+				else{
+					goHome();
+				}
 			},
 			error: function (e) {
 				console.log("Login Retorno: ERROR! = " + JSON.stringify(e));
@@ -543,13 +552,7 @@ function recuperaImagemData(dataInicio, dataFim){
 					  "offline" : true
 					}
 				}
-				if(localStorage.getItem("user")){
-					window.localStorage.removeItem("user");
-				}
-				$.mobile.changePage("#error");
-				var errorPage = Handlebars.compile($("#error-tpl").html());;
-				$('#error-data').html(errorPage(context));
-				
+				changeToErrorPage(context);
 			}
 				
 		});
@@ -645,7 +648,7 @@ function homeContext(inicio, fim) {
 }
 
 function offlineHomeContext() {
-		
+		var user = JSON.parse(window.localStorage.getItem("user"));
 		//window.localStorage.removeItem("offlineLib");
 		var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 		console.log("CONTEXTO OFFLINE = " + JSON.stringify(offlineImagensLib))
@@ -791,13 +794,20 @@ function getBase64FromImageUrl(URL) {
 }
 
 function synchronize(){
-	$('#sincronizando').show();
+	
 	var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 	var user = JSON.parse(window.localStorage.getItem("user"));
 	var token = user.token;
 	console.log("Sincronizando " + offlineImagensLib["size"] + " imagens");
-	for (var i = 0; i < offlineImagensLib["gallery"].length; i++){
+	$.mobile.changePage($('#sincronizar'));
+	var qtdImg = offlineImagensLib["gallery"].length;
+	var cont = qtdImg;
+	$('#qtdImagens').html(qtdImg);
+	$('#progressImage').toggle();
+	$('#feedList').listview('refresh');
+	for (var i = 0; i < qtdImg; i++){
 		var image = offlineImagensLib["gallery"][i];
+		$('#feedList').append("<li><img class='position-left syncPreview' src='data:image/png;base64,"+image.base64+"'/><label class='pull-left paddingFive'><h2><strong>"+image.photo_label+"</strong></h2><span id='photo-"+i+"'></span></label></li><br clear='all'>");
 		if(image.sincronizada == false){
 			var dataE = {"token" : token, "nomeFoto" : image.photo_label , "descricao" : image.millis , "base64code" : image.base64};
 			$.ajax( {
@@ -808,37 +818,57 @@ function synchronize(){
 				dataType: "text",
 				async: false,
 				success: function (data){
+					cont--;
 					console.log("IMAGEM " + i + " " + image.photo_label + " sincronizada com sucesso");
+					$('#photo-'+ i).html("<label class='syncSuccess'> Sucesso </label>");
 					offlineImagensLib["gallery"][i].sincronizada = true;
+					if(cont == 0){
+						afterSynchronization(offlineImagensLib);
+					}
 				},
 				error: function (e) {
+					cont--;
+					var erroText = '';
 					if(e.responseJSON && e.responseJSON.msg == "Token invalido"){
-						console.log("Message do error = " + e.responseJSON.msg);
-						context = {
-						  "error" : "Falha ao sincronizar - " + e.responseJSON.msg,
-						  "link" : "#login",
-						  "btn-text": "Login",
-						  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor realize o login novamente."
-						}
+						erroText = 'Token inválido';
 					}
 					else{
-						context = {
-						  "error" : "Falha ao sincronizar - Erro de conexão",
-						  "link" : "#login",
-						  "btn-text": "Login",
-						  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
-						}
+						erroText = 'Sem conexão';
 					}
-					window.localStorage.removeItem("user");
-					$.mobile.changePage("#error");
-					var errorPage = Handlebars.compile($("#error-tpl").html());;
-					$('#error-data').html(errorPage(context));
+					$('#photo-'+ i).html("<label class='syncError'> Erro: "+ erroText +" </label>");
+					if(cont == 0){
+						afterSynchronization(offlineImagensLib);
+					}
 				}
 			});
 		}
 	}
-	window.localStorage.removeItem("offlineLib");
 }
+
+function afterSynchronization(lib){
+	$('#progressImage').toggle();
+	var failedSynch = {
+		"gallery" : []
+	}
+	var hasErrors = false;
+	for (var i = 0; i < lib["gallery"].length; i++){
+		if(lib["gallery"][i].sincronizada == false){
+			hasErrors = true;
+			failedSynch["gallery"].push(lib["gallery"][i]);
+		}
+	}
+	if(hasErrors){
+		$('#errorBtns').toggle();
+		window.localStorage.setItem("offlineLib", JSON.stringify(failedSynch));	
+	}
+	else{
+		$('#homeHiddenBtn').toggle();
+		window.localStorage.removeItem("offlineLib");
+	}
+	
+
+}
+
 
 function checkConnection() {
     var networkState = navigator.connection.type;
@@ -857,19 +887,39 @@ function checkConnection() {
 }
 
 function turnOffline(){
-	if(networkStatus == true){
-		networkStatus = false;
-		console.log("Modo offline triggered!!!");
-		var user = JSON.parse(window.localStorage.getItem("user"));
-		var today = Date.today().getTime();
-		if (user != null) console.log("Token expirado? " + today + " >>> " + user.dataExpiracao.getTime())
-		if (user == null || today > Date.parse(user.dataExpiracao).getTime()){
-			$.mobile.changePage($('#login'));
+	var user = JSON.parse(window.localStorage.getItem("user"));
+	var today = Date.today().getTime();
+	//if (user != null) console.log("Token expirado? " + today + " >>> " + user.tokenTimeStamp);
+	if (user == null || today > Date.parse(user.dataExpiracao).getTime()){
+		console.log("Usuario nulo ou token expirado");
+		context = {
+				  "error" : "Não é possivel entrar em modo offline:",
+				  "link" : "#login",
+				  "btn-text": "Login",
+				  "msg" : "Sua sessão expirou, ou você ainda não logou nesse dispositivo. É necessário logar com sua conta pela primeira vez ou a cada 7 dias.",
+				  "offline" : false
 		}
-		else{
-			goHome();	
-		}
-		
+		changeToErrorPage(context);
+	}
+	else{
+		//if(networkStatus == true){
+			networkStatus = false;
+			console.log("Modo offline triggered!!!");
+			if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'login') {
+				console.log("indo para home no modo offline");
+				goHome();
+			}
+			else{
+				context = {
+					  "error" : "Perda de conexão",
+					  "link" : "#login",
+					  "btn-text": "Login",
+					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve. Você pode continuar a usar a aplicação em modo offline e sincronizar suas coletas posteriormente quando tiver conexão.",
+					  "offline" : true
+				}
+				changeToErrorPage(context);
+			}
+		//}
 	}
 }
 
@@ -882,7 +932,13 @@ function turnOnline(){
 			$.mobile.changePage($('#login'));
 		}
 		else{
-			goHome();	
+			var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
+			if(offlineImagensLib){
+				synchronize();	
+			}
+			else{
+				goHome();	
+			}
 		}
 	}
 }
@@ -894,6 +950,13 @@ function goHome(){
 	else $.mobile.changePage($('#home'));
 }
 
+function changeToErrorPage(context){
+	$.mobile.changePage("#error");
+	var errorPage = Handlebars.compile($("#error-tpl").html());
+	$('#error-data').html(errorPage(context));
+	//$('#error-data').listview('refresh');
+}
+
 
 
 var loginTemplate = Handlebars.compile($("#login-tpl").html());
@@ -902,3 +965,4 @@ var homeBlankTemplate = Handlebars.compile($("#homeBlank-tpl").html());
 var detailTemplate = Handlebars.compile($("#detail-tpl").html());
 var photoTemplate = Handlebars.compile($("#photo-tpl").html());
 var perfilTemplate = Handlebars.compile($("#perfil-tpl").html());
+var sincronizarTemplate = Handlebars.compile($("#sincronizar-tpl").html());

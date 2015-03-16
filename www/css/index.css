@@ -88,13 +88,44 @@
 .comment-textbox:focus {
     border-color: #C9C9C9;
     -webkit-box-shadow: rgba(0, 0, 0, 0.15) 0 0 8px;
-}   
+}
+
+img.loader{
+  text-align: center;
+  padding: 5px 5px 5px 5px;
+}
+
+img.syncPreview{
+  width: 25%;
+  display: block;
+}
+
+.syncSuccess{
+  font-weight: bold;
+  color: green;
+}
+
+.syncError{
+  font-weight: bold;
+  color: darkred;
+}
  
 .data-label{
 	float: right;
-	color: #FFBD21;
 	font-size: small !important;
 	padding-right: 10px;
+}
+
+.session{
+  display: block;
+  font-size: small !important;
+  padding-top: 5px;
+  padding-right: 10px;
+  overflow: hidden;
+}
+
+.orangeText{
+  color: #FFBD21;
 }
 
 .error-content{
@@ -110,6 +141,10 @@
 	color: #FFBD21;
 	font-size: large !important;
 	
+}
+
+.centered{
+  text-align: center;
 }
 
 .button-style-1{
@@ -143,6 +178,11 @@
 .position-right{
 	float: right;
 	position: relative;
+}
+
+.position-left{
+  float: left;
+  position: relative;
 }
 
 .thumbnail {

@@ -89,7 +89,8 @@
 <div data-role="page" id="home" data-theme="b" data-cache="never" data-transition="slide">
     <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
         <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
-        <h1>Home</h1>
+        <h1 class="pull-left">Home</h1>
+        <label class="session pull-right">Sessão válida até: <label id="tokenDate" class="orangeText"><label></label>
     </div>
     <div role="main" class="ui-content">
         <script id="home-tpl" type="text/x-handlebars-template">
@@ -110,8 +111,7 @@
                         {{/each}}
                     {{else}}
                         <p class="paddingFive"> Você está no modo offline, </p>
-                        <p class="paddingFive"> Nesse modo suas fotos são armazenadas localmente</p>
-                        <p class="paddingFive"> e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
+                        <p class="paddingFive"> Nesse modo suas fotos são armazenadas localmente e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
                     {{/if}}
                 {{else}}
 
@@ -144,8 +144,6 @@
 
                                 {{#if this.ultimoComentario}}
                                     <p>{{ultimoComentario}}</p>
-                                {{else}}
-                                    <p>{{description}} </p>
                                 {{/if}}
                             </a></li>
                         {{/if}}
@@ -199,7 +197,7 @@
                <strong>{{title}}</strong>
            </div>
            <p>
-            <label class="data-label"> Enviado no dia {{date}} </label>
+            <label class="data-label orangeText"> Enviado no dia {{date}} </label>
         </p>
         <hr class="prettyline">
         <h4><strong>Comentários</strong></h4>
@@ -267,12 +265,6 @@
         <p>Contatando o servidor...</p>
         <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
     </div>
-    <div id="sincronizando" align="center" style="display:none">
-        <p>Sincronizando imagens...</p>
-        <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
-        <div id="state"></div>
-    </div>
-
     <div style="text-align:center; background-color: #FFBD21;">
         <input data-role="button" type="button" onClick="login()" value="Conectar" />
     </div>
@@ -446,35 +438,65 @@
 <div data-role="page" id="error" data-cache="never">
     <div data-role="content" role="main" class="ui-content">
         <div align="center">
-         <img src="img/logonu3.png" width="150px" height="100px"/>
-     </div>
-     <div class="formLogin" data-role="fieldcontain">
-        <hr class="prettyline">
-        <script id="error-tpl" type="text/x-handlebars-template">
-           <div class="error-content">
-               <span>{{error}}</span>
-               <p>{{msg}}</p>
-           </div>
-           <br>
-           <hr class="prettyline">
-           <div>
-            <a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
+            <img src="img/logonu3.png" width="150px" height="100px"/>
         </div>
+         <div class="formLogin" data-role="fieldcontain">
+            <hr class="prettyline">
+            <script id="error-tpl" type="text/x-handlebars-template">
+               <div class="error-content">
+                   <span>{{error}}</span>
+                   <p>{{msg}}</p>
+               </div>
+               <br>
+               <hr class="prettyline">
+               <div>
+                <a href="{{link}}" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">{{btn-text}}</span></span></a>
+                </div>
+                {{#if offline}}
+                <hr class="prettyline">
+                <div>
+                    <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
+                </div>
+                {{/if}}
+            </script>
 
-        {{#if offline}}
-        <hr class="prettyline">
-        <div>
-            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Modo Offline</span></span></a>
+            <ul data-role="listview" id="error-data">  
+            </ul>
         </div>
-        {{/if}}
-    </script>
+    </div>
+</div>
+<!-- /TELA SYNCRONIZE -->
+<div data-role="page" id="sincronizar" data-theme="b" data-cache="never">
+    <div data-id="head1" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme='b' style="overflow-y: hidden;">
+        <a href="#myPanel" data-ajax="false"><i class='fa fa-bars'></i></a>
+        <h1>Sincronizar</h1>
+    </div>
 
-    <ul data-role="listview" id="error-data">  
-    </ul>
+    <div role="main" class="ui-content">
+        <label class="paddingFive centered">
+            <p>Sincronizando <strong><span id="qtdImagens" class="orangeText"></span></strong> imagens com o servidor:</p>
+        </label>
+        <div id="progressImg" class="hidden">
+            <img class="loader" src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
+        </div>
+        <div id="sincProgress">
+            <hr class="prettyline">
+            <ul data-role="listview" id="feedList">
+            <!-- JAVASCRIPT CODE INJECT -->
+            </ul>
+            <hr class="prettyline">
+        </div>
+        <div id="errorBtns" class="hidden">
+            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onclick="synchronize();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Tentar Novamente</span></span></a>
+            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onclick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Voltar modo Offline</span></span></a>
+        </div>
+        <div id="homeHiddenBtn" class="hidden">
+            <a  href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Continuar</span></span></a>
+        </div>
+    </div>
+
 </div>
-</div>
-</div>
-<!-- /TELA ERRO -->
+<!-- /TELA SYNCRONIZE -->
 
 
 </body>
