@@ -10,6 +10,93 @@ var storeParameters = {
 	weekends: 0,	
 	refresh: true
 }
+//funcoes para banco de dados:
+var app = {};
+app.db = null;
+
+app.openDb = function() {
+   if (window.navigator.simulator === true) {
+        // For debugin in simulator fallback to native SQL Lite
+        console.log("Use built in SQL Lite");
+        app.db = window.openDatabase("nu3app", "1.0", "Cordova Demo", 200000);
+    }
+    else {
+        app.db = window.sqlitePlugin.openDatabase("nu3app", androidLockWorkaround: 1);
+    }
+}
+
+app.createTable = function() {
+	var db = app.db;
+	db.transaction(function(tx) {
+		tx.executeSql("CREATE TABLE IF NOT EXISTS (ID INTEGER PRIMARY KEY ASC, todo TEXT, added_on DATETIME)", []);
+	});
+}
+
+app.addTodo = function(todoText) {
+	var db = app.db;
+	db.transaction(function(tx) {
+		var addedOn = new Date();
+		tx.executeSql("INSERT INTO todo(todo, added_on) VALUES (?,?)",
+					  [todoText, addedOn],
+					  app.onSuccess,
+					  app.onError);
+	});
+}
+      
+app.onError = function(tx, e) {
+	console.log("Error: " + e.message);
+} 
+      
+app.onSuccess = function(tx, r) {
+	app.refresh();
+}
+      
+app.deleteTodo = function(id) {
+	var db = app.db;
+	db.transaction(function(tx) {
+		tx.executeSql("DELETE FROM todo WHERE ID=?", [id],
+					  app.onSuccess,
+					  app.onError);
+	});
+}
+
+app.refresh = function() {
+	var renderTodo = function (row) {
+		return "<li>" + "<div class='todo-check'></div>" + row.todo + "<a class='button delete' href='javascript:void(0);'  onclick='app.deleteTodo(" + row.ID + ");'><p class='todo-delete'></p></a>" + "<div class='clear'></div>" + "</li>";
+	}
+    
+	var render = function (tx, rs) {
+		var rowOutput = "";
+		var todoItems = document.getElementById("todoItems");
+		for (var i = 0; i < rs.rows.length; i++) {
+			rowOutput += renderTodo(rs.rows.item(i));
+		}
+      
+		todoItems.innerHTML = rowOutput;
+	}
+    
+	var db = app.db;
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT * FROM todo", [], 
+					  render, 
+					  app.onError);
+	});
+}
+      
+function init() {
+    navigator.splashscreen.hide();
+	app.openDb();
+	app.createTable();
+	app.refresh();
+}
+      
+function addTodo() {
+	var todo = document.getElementById("todo");
+	app.addTodo(todo.value);
+	todo.value = "";
+}
+
+
 //Painel lateral template:
 var panel = '<div data-role="panel" id="myPanel" data-position="left" data-display="push" data-theme="a"><ul data-role="listview"><li><a href="#profile">Perfil</a></li><li><a href="#sobre">Sobre</a></li><li><a onClick="logout();">Logout</a></li><li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li></ul><br><img src="img/logonu3.png" class="painel-img"/><p class="painel-message">Seu aplicativo de acompanhamento nutricional.</p><div class="ui-footer ui-bar-a"><h4 class="ui-title">Visite:</h4><a href="http://nu3.strikingly.com/" rel="external" target="_blank">nu3.strikingly.com</a></div></div>';
 //Antes de criar as paginas, será colocado o painel lateral
@@ -564,6 +651,7 @@ function recuperaImagemData(dataInicio, dataFim){
 function homeContext(inicio, fim) {
 		console.log("REFRESH???? = " + storeParameters.refresh);
 		//console.log("ImagemData  = " + JSON.stringify(imagensData));
+		//window.localStorage.removeItem("user");
 		var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
 		if(imagensLib == null){
 			console.log("BIBLIOTECA NULA, CRIANDO UMA!");
