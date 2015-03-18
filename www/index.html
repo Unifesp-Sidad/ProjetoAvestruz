@@ -111,7 +111,7 @@
                         {{/each}}
                     {{else}}
                         <p class="paddingFive"> Você está no modo offline, </p>
-                        <p class="paddingFive"> Nesse modo suas fotos são armazenadas localmente e na próxima vez que você logar suas fotos irão sincronizar automaticamente na nuvem.</p>
+                        <p class="paddingFive"> No modo offline suas fotos serão salvas no aparelho e enviadas ao nutricionista assim que você se conectar a internet.</p>
                     {{/if}}
                 {{else}}
 
@@ -149,10 +149,10 @@
                         {{/if}}
                     {{/each}}
                     <div id="loading" align="center" style="display:none">
-                        <p>Contatando o servidor e sincronizando...</p>
+                        <p>Sincronizando...</p>
                         <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
                     </div>
-                    <a href="#" class="ui-state-persist button-style-1" onClick="loadMoreFeed()"><i class='blIcon fa fa-calendar paddingFive'> Carregar mais feed...</i></a>
+                    <a href="#" class="ui-state-persist button-style-1" onClick="loadMoreFeed()"><i class='blIcon fa fa-calendar paddingFive'> Carregar mais...</i></a>
                 {{/if}}
                 <!--// /LISTA DA TIMELINE -->
             </script>
@@ -255,14 +255,14 @@
     <div class="formLogin" data-role="fieldcontain">
         <div style="align: center;">
            <label for="mail" class="ui-hidden-accessible">Mail:</label>
-           <input type="text" name="mail" placeholder="Email" id="mail"/>
+           <input type="text" name="mail" placeholder="E-mail" id="mail"/>
 
            <label for="password" class="ui-hidden-accessible">Password:</label>
-           <input type="password" name="password" placeholder="Password" id="password"/>
+           <input type="password" name="password" placeholder="Senha" id="password"/>
        </div>
        <br>
        <div id="loading" align="center" style="display:none">
-        <p>Contatando o servidor...</p>
+        <p>Conectando...</p>
         <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
     </div>
     <div style="text-align:center; background-color: #FFBD21;">
@@ -274,7 +274,7 @@
 
         <hr class="prettyline">
         <div>
-            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Entrar em Modo Offline</span></span></a>
+            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onClick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text"><p align="center">Sem Internet? Entre em Modo Offline</p></span></span></a>
         </div>
 
 </div>
@@ -292,18 +292,18 @@
             <div align="center">
 
                 <label for="rusername" class="ui-hidden-accessible">Username:</label>
-                <input type="text"  id="rusername" name="rusername" placeholder="Username" />
+                <input type="text"  id="rusername" name="rusername" placeholder="Nome" />
                 
                 <label for="rmail" class="ui-hidden-accessible">Mail:</label>
-                <input type="text" name="rmail" placeholder="Email" id="rmail" />
+                <input type="text" name="rmail" placeholder="E-mail" id="rmail" />
 
                 <label for="rpassword" class="ui-hidden-accessible">Password:</label>
-                <input type="password" name="rpassword" placeholder="Password" id="rpassword" />
+                <input type="password" name="rpassword" placeholder="Senha" id="rpassword" />
                 <label for="rpassword2" class="ui-hidden-accessible">Password Confirm:</label>
-                <input type="password" name="rpassword2" placeholder="Password Confirm" id="rpassword2" />
+                <input type="password" name="rpassword2" placeholder="Confirme a Senha" id="rpassword2" />
             </div>
             <div id="loading" align="center" style="display:none">
-                <p>Contatando o servidor...</p>
+                <p>Enviando dados...</p>
                 <img src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
             </div>
 
@@ -365,7 +365,7 @@
 
 <div role="main" class="ui-content">
     <input name="titulo" id="photoTitle" type="text" placeholder="Título" />
-    <p id="warning" class="hidden error-message">Por favor, entre com um título não-vazio.</p>
+    <p id="warning" class="hidden error-message">Por favor, insira um título.</p>
     <button style="background-color:#FFBD21;" data-role="button" onClick="prepareImagem();">Enviar</button>
     <p align="center">Mudou de idéia? <a href="#home">Cancelar</a></p>
     <div id="hiddenBase64" class="hidden"></div>
@@ -399,7 +399,7 @@
         <!-- DADOS PERFIL -->
         {{#if this.offline}}
             <h2 class="offlineTitle paddingFive"><strong>Você está em Modo Offline</strong></h2>
-            <p class="paddingFive">Para acessar suas informações de perfil, por favor ative sua rede de internet e logue-se novamente no aplicativo.</p>
+            <p class="paddingFive">Não é possível acessar suas informações de perfil no Modo Offline. Por favor, se conecte a internet e tente acessar novamente.</p>
         {{else}}
         <h2><strong>{{nome}}</strong></h2>
         <p>{{email}}</p>
@@ -474,7 +474,7 @@
 
     <div role="main" class="ui-content">
         <label class="paddingFive centered">
-            <p>Sincronizando <strong><span id="qtdImagens" class="orangeText"></span></strong> imagens com o servidor:</p>
+            <p>Sincronizando <strong><span id="qtdImagens" class="orangeText"></span></strong> imagens:</p>
         </label>
         <div id="progressImg" class="hidden">
             <img class="loader" src="img/ajax-loader.gif" width="31" height="31" alt="Loading..."/>
@@ -488,7 +488,7 @@
         </div>
         <div id="errorBtns" class="hidden">
             <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onclick="synchronize();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Tentar Novamente</span></span></a>
-            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onclick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Voltar modo Offline</span></span></a>
+            <a  href="#" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c" onclick="turnOffline();"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Voltar ao Modo Offline</span></span></a>
         </div>
         <div id="homeHiddenBtn" class="hidden">
             <a  href="#home" data-role="button" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="c" class="ui-btn ui-shadow ui-btn-corner-all ui-btn-up-c"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Continuar</span></span></a>

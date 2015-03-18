@@ -204,7 +204,7 @@ function criaUsuario(){
 					console.log("criaUser Retorno: " + data);
 					if(data){
 						var ic = document.getElementById('result');
-						ic.innerHTML = 'Cadastro realizado com sucesso. Preenche o form de login para entrar.';
+						ic.innerHTML = 'Cadastro realizado com sucesso. Retorne e faça o login.';
 					}
 				},
 				error: function (e) {
@@ -265,7 +265,7 @@ function login(){
 					  "error" : e.responseJSON.msg,
 					  "link" : "#login",
 					  "btn-text": "Login",
-					  "msg" : "Usuário ou Senha inválidos, por favor tente logar-se novamente...",
+					  "msg" : "Usuário ou Senha inválidos. Tente entrar novamente.",
 					}
 				}
 				else{
@@ -274,7 +274,7 @@ function login(){
 					  "error" : "Erro de conexão",
 					  "link" : "#login",
 					  "btn-text": "Login",
-					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve.",
+					  "msg" : "Verifique se seu dispositivo está conectado à internet e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve.",
 					  "offline" : true
 					}
 					networkStatus = false;
@@ -368,7 +368,7 @@ function criaImagem(nome, base64){
 						  "error" : "Falha ao enviar imagem - " + e.responseJSON.msg,
 						  "link" : "#login",
 						  "btn-text": "Login",
-						  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor realize o login novamente."
+						  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor, entre novamente."
 						}
 					}
 					else{
@@ -376,7 +376,7 @@ function criaImagem(nome, base64){
 						  "error" : "Falha ao enviar imagem - Erro de conexão",
 						  "link" : "#login",
 						  "btn-text": "Login",
-						  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve."
+						  "msg" : "Verifique se seu dispositivo está conectado à internet e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve."
 						}
 					}
 					$.mobile.changePage("#error");
@@ -540,7 +540,7 @@ function recuperaImagemData(dataInicio, dataFim){
 					  "error" : e.responseJSON.msg,
 					  "link" : "#login",
 					  "btn-text": "Login",
-					  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor realize o login novamente."
+					  "msg" : "Sua sessão expirou ou você acessou sua conta através de outro dispositivo. Por favor, entre novamente."
 					}
 				}
 				else{
@@ -548,7 +548,7 @@ function recuperaImagemData(dataInicio, dataFim){
 					  "error" : "Erro de conexão",
 					  "link" : "#login",
 					  "btn-text": "Login",
-					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve.",
+					  "msg" : "Verifique se seu dispositivo está conectado à internet, e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve.",
 					  "offline" : true
 					}
 				}
@@ -896,7 +896,7 @@ function turnOffline(){
 				  "error" : "Não é possivel entrar em modo offline:",
 				  "link" : "#login",
 				  "btn-text": "Login",
-				  "msg" : "Sua sessão expirou, ou você ainda não logou nesse dispositivo. É necessário logar com sua conta pela primeira vez ou a cada 7 dias.",
+				  "msg" : "Sua sessão expirou ou você ainda não entrou com esse dispositivo. Faça login novamente.",
 				  "offline" : false
 		}
 		changeToErrorPage(context);
@@ -914,7 +914,7 @@ function turnOffline(){
 					  "error" : "Perda de conexão",
 					  "link" : "#login",
 					  "btn-text": "Login",
-					  "msg" : "Verifique se seu dispositivo está conectado na internet, e tente logar-se novamente. Se o problema persistir, provavelmente nosso servidor está fora do ar e irá retornar em breve. Você pode continuar a usar a aplicação em modo offline e sincronizar suas coletas posteriormente quando tiver conexão.",
+					  "msg" : "Verifique se seu dispositivo está conectado à internet e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve. Você pode utilizar o Modo Offline para tirar suas fotos e poderá enviá-las mais tarde, quando tiver conexão.",
 					  "offline" : true
 				}
 				changeToErrorPage(context);
