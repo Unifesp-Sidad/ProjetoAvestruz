@@ -1,5 +1,5 @@
 // JavaScript Document
-var urlService = "http://54.94.159.232:8080/nutri-rest-patient/rest/";
+var urlService = "http://200.144.93.244/nutri-rest-patient/rest/";
 var globalIndex = null;
 var networkStatus = true;
 var storeParameters = {
@@ -21,23 +21,47 @@ app.openDb = function() {
         app.db = window.openDatabase("nu3app", "1.0", "Cordova Demo", 200000);
     }
     else {
-        app.db = window.sqlitePlugin.openDatabase("nu3app", androidLockWorkaround: 1);
+        app.db = window.sqlitePlugin.openDatabase({name: "nu3app", androidLockWorkaround: 1});
     }
 }
 
 app.createTable = function() {
 	var db = app.db;
 	db.transaction(function(tx) {
-		tx.executeSql("CREATE TABLE IF NOT EXISTS (ID INTEGER PRIMARY KEY ASC, todo TEXT, added_on DATETIME)", []);
+		tx.executeSql("CREATE TABLE IF NOT EXISTS users (ID INTEGER PRIMARY KEY ASC AUTOINCREMENT, username TEXT, email TEXT, token TEXT, token_exp INTEGER, token_date DATETIME, added_on DATETIME)", []);
+		tx.executeSql("CREATE TABLE IF NOT EXISTS imagensLib (ID INTEGER PRIMARY KEY ASC, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, added_on DATETIME)", []);
+		tx.executeSql("CREATE TABLE IF NOT EXISTS offlineLib (ID INTEGER PRIMARY KEY ASC AUTOINCREMENT, title TEXT, base64 TEXT, synch INTEGER, added_on DATETIME)", []);
 	});
 }
 
-app.addTodo = function(todoText) {
+app.addUser = function(name, email, token, tokenDate) {
 	var db = app.db;
 	db.transaction(function(tx) {
 		var addedOn = new Date();
-		tx.executeSql("INSERT INTO todo(todo, added_on) VALUES (?,?)",
-					  [todoText, addedOn],
+		tx.executeSql("INSERT INTO users(username, email, token, token_date, added_on) VALUES (?,?,?,?,?)",
+					  [name, email, token, tokenDate, addedOn],
+					  app.onSuccess,
+					  app.onError);
+	});
+}
+
+app.addPhoto = function(id, title, base64, data, rating) {
+	var db = app.db;
+	db.transaction(function(tx) {
+		var addedOn = new Date();
+		tx.executeSql("INSERT INTO imagensLib(id, title, base64, data, rating, added_on) VALUES (?,?,?,?,?,?)",
+					  [id, title, base64, data, rating, addedOn],
+					  app.onSuccess,
+					  app.onError);
+	});
+}
+
+app.addOfflinePhoto = function(title, base64) {
+	var db = app.db;
+	db.transaction(function(tx) {
+		var addedOn = new Date();
+		tx.executeSql("INSERT INTO offlineLib(title, base64, synch, added_on) VALUES (?,?,?,?)",
+					  [title, base64, 0, addedOn],
 					  app.onSuccess,
 					  app.onError);
 	});
@@ -48,7 +72,8 @@ app.onError = function(tx, e) {
 } 
       
 app.onSuccess = function(tx, r) {
-	app.refresh();
+	console.log("Succecc: " + r.message);
+	//app.refresh();
 }
       
 app.deleteTodo = function(id) {
@@ -159,7 +184,9 @@ $(document).on('pagebeforeshow', '#detalhes', function(){
 	image = imagensData[index];
 	console.log("IMAGE = " + JSON.stringify(image));
 	var comentarios = recuperaComentarios(image);
+	console.log("Tentando fazer parse de: " + image.data);
 	var newDate = Date.parse(image.data);
+	console.log("Resultado: " + newDate);
 	var dia = newDate.toString("dd/MM");
 	var hora = newDate.toString("HH:mm");
 	var context = {
@@ -421,13 +448,14 @@ function prepareImagem(){
 	}
 }
 
-function criaImagem(nome, base64){
-	var nome = $("#photoTitle").val();
+function criaImagem(nome, base64)
+{	var nome = $("#photoTitle").val();
 	//var text = $("#photoDesciption").val();
 	console.log("Base64 recuperado: " + base64);
-	var currentDate = Date.parse("now");
+	var currentDate = new Date();
 	var day = currentDate.toString("dd/MM");
 	var hour = currentDate.toString("HH:mm");
+	console.log("Current Date = " + currentDate + " timestamp: " + currentDate.getTime());
 	//console.log("Base retirado do HTML = " + base64);
 	console.log("Criar foto modo online? " + networkStatus );
 		if(networkStatus == true){
