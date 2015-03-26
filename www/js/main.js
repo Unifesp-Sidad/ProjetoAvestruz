@@ -10,294 +10,220 @@ var storeParameters = {
 	weekends: 0,	
 	refresh: true
 }
-//funcoes para banco de dados:
-var app = {};
-app.db = null;
-
-app.openDb = function() {
-   if (window.navigator.simulator === true) {
-        // For debugin in simulator fallback to native SQL Lite
-        console.log("Use built in SQL Lite");
-        app.db = window.openDatabase("nu3app", "1.0", "Cordova Demo", 200000);
-    }
-    else {
-        app.db = window.sqlitePlugin.openDatabase({name: "nu3app", androidLockWorkaround: 1});
-    }
-}
-
-app.createTable = function() {
-	var db = app.db;
-	db.transaction(function(tx) {
-		tx.executeSql("CREATE TABLE IF NOT EXISTS users (ID INTEGER PRIMARY KEY ASC AUTOINCREMENT, username TEXT, email TEXT, token TEXT, token_exp INTEGER, token_date DATETIME, added_on DATETIME)", []);
-		tx.executeSql("CREATE TABLE IF NOT EXISTS imagensLib (ID INTEGER PRIMARY KEY ASC, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, added_on DATETIME)", []);
-		tx.executeSql("CREATE TABLE IF NOT EXISTS offlineLib (ID INTEGER PRIMARY KEY ASC AUTOINCREMENT, title TEXT, base64 TEXT, synch INTEGER, added_on DATETIME)", []);
-	});
-}
-
-app.addUser = function(name, email, token, tokenDate) {
-	var db = app.db;
-	db.transaction(function(tx) {
-		var addedOn = new Date();
-		tx.executeSql("INSERT INTO users(username, email, token, token_date, added_on) VALUES (?,?,?,?,?)",
-					  [name, email, token, tokenDate, addedOn],
-					  app.onSuccess,
-					  app.onError);
-	});
-}
-
-app.addPhoto = function(id, title, base64, data, rating) {
-	var db = app.db;
-	db.transaction(function(tx) {
-		var addedOn = new Date();
-		tx.executeSql("INSERT INTO imagensLib(id, title, base64, data, rating, added_on) VALUES (?,?,?,?,?,?)",
-					  [id, title, base64, data, rating, addedOn],
-					  app.onSuccess,
-					  app.onError);
-	});
-}
-
-app.addOfflinePhoto = function(title, base64) {
-	var db = app.db;
-	db.transaction(function(tx) {
-		var addedOn = new Date();
-		tx.executeSql("INSERT INTO offlineLib(title, base64, synch, added_on) VALUES (?,?,?,?)",
-					  [title, base64, 0, addedOn],
-					  app.onSuccess,
-					  app.onError);
-	});
-}
-      
-app.onError = function(tx, e) {
-	console.log("Error: " + e.message);
-} 
-      
-app.onSuccess = function(tx, r) {
-	console.log("Succecc: " + r.message);
-	//app.refresh();
-}
-      
-app.deleteTodo = function(id) {
-	var db = app.db;
-	db.transaction(function(tx) {
-		tx.executeSql("DELETE FROM todo WHERE ID=?", [id],
-					  app.onSuccess,
-					  app.onError);
-	});
-}
-
-app.refresh = function() {
-	var renderTodo = function (row) {
-		return "<li>" + "<div class='todo-check'></div>" + row.todo + "<a class='button delete' href='javascript:void(0);'  onclick='app.deleteTodo(" + row.ID + ");'><p class='todo-delete'></p></a>" + "<div class='clear'></div>" + "</li>";
-	}
-    
-	var render = function (tx, rs) {
-		var rowOutput = "";
-		var todoItems = document.getElementById("todoItems");
-		for (var i = 0; i < rs.rows.length; i++) {
-			rowOutput += renderTodo(rs.rows.item(i));
-		}
-      
-		todoItems.innerHTML = rowOutput;
-	}
-    
-	var db = app.db;
-	db.transaction(function(tx) {
-		tx.executeSql("SELECT * FROM todo", [], 
-					  render, 
-					  app.onError);
-	});
-}
-      
-function init() {
-    navigator.splashscreen.hide();
-	app.openDb();
-	app.createTable();
-	app.refresh();
-}
-      
-function addTodo() {
-	var todo = document.getElementById("todo");
-	app.addTodo(todo.value);
-	todo.value = "";
-}
+var user = null;
+var deviceReadyDeferred = $.Deferred();
+var jqmReadyDeferred = $.Deferred();
 
 
+document.addEventListener("deviceready", onDeviceReady, false);
 //Painel lateral template:
 var panel = '<div data-role="panel" id="myPanel" data-position="left" data-display="push" data-theme="a"><ul data-role="listview"><li><a href="#profile">Perfil</a></li><li><a href="#sobre">Sobre</a></li><li><a onClick="logout();">Logout</a></li><li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li></ul><br><img src="img/logonu3.png" class="painel-img"/><p class="painel-message">Seu aplicativo de acompanhamento nutricional.</p><div class="ui-footer ui-bar-a"><h4 class="ui-title">Visite:</h4><a href="http://nu3.strikingly.com/" rel="external" target="_blank">nu3.strikingly.com</a></div></div>';
 //Antes de criar as paginas, será colocado o painel lateral
-$(document).one('pagebeforecreate', function () {
-    $.mobile.pageContainer.prepend(panel);
-    $("#myPanel").panel().enhanceWithin();
+
+$(document).on("mobileinit", function () {
+  jqmReadyDeferred.resolve();
 });
 
-$(document).on('pagebeforeshow', '#home', function(){
-	var user = JSON.parse(window.localStorage.getItem("user"));
-	if (user == null && networkStatus == true){
-		$.mobile.changePage($('#login'));	
-	}
-	else{
-		$('#feed-data').empty();
-		var context = null;
-		if (networkStatus == false){
-			console.log("Changing to offline mode!");
-			context = offlineHomeContext();
+$.when(deviceReadyDeferred, jqmReadyDeferred).then(initAplication);
+
+function onDeviceReady() {
+    document.addEventListener("offline", turnOffline, false);
+    document.addEventListener("online", turnOnline, false);
+    initDatabase();
+    deviceReadyDeferred.resolve();
+	user = app.loadUser();
+    // Native loading spinner
+    if (window.spinnerplugin) {
+        $.extend($.mobile, {
+            loading: function() {
+                // Show/hide spinner
+                var arg = arguments ? arguments[0] : '';
+                if (arg == 'show') spinnerplugin.show({'overlay':true});
+                else if (arg == 'hide') spinnerplugin.hide();           
+
+                // Compatibility with jQM 1.4
+                return { loader: function() { } }
+            }
+        });
+    }
+}
+
+function initAplication(){
+	console.log("Aplicação carregada com sucesso!");
+	$(document).on('pagebeforeshow', '#home', function(){
+		console.log("User loaded: " + JSON.stringify(user));
+		if (user == null && networkStatus == true){
+			console.log("Usuario null?");
+			$.mobile.changePage($('#login'));	
 		}
 		else{
-			$('#loading').show();
-			var hoje = Date.today().add(1).days();
-			if(storeParameters.inicio == null){
-				storeParameters.inicio = Date.parse("last sunday");	
+			$('#feed-data').empty();
+			var context = null;
+			if (networkStatus == false){
+				console.log("Changing to offline mode!");
+				context = offlineHomeContext();
 			}
-			console.log("Weekend guardado na memória = " + storeParameters.inicio)
-			context = homeContext(storeParameters.inicio, hoje);
-			$('#loading').hide();
-		}
-		context.user = user;
-		$('#tokenDate').html(user.tokenDate);
-		var homePage = Handlebars.compile($("#home-tpl").html());;
-		$('#feed-data').html(homePage(context));
-		$('#feed-data').listview('refresh');
-		
-		$(document).on("click",'#change-page-button', function (event) {
+			else{
+				var hoje = Date.today().add(1).days();
+				if(storeParameters.inicio == null){
+					storeParameters.inicio = Date.parse("last sunday");	
+				}
+				console.log("Weekend guardado na memória = " + storeParameters.inicio)
+				context = homeContext(storeParameters.inicio, hoje);
+			}
+			context.user = user;
+			//var printTokenDate = user.dataExpiracao.slice(0,data.dataExpiracao.length - 12);
+			$('#tokenDate').html("teste");
+			var homePage = Handlebars.compile($("#home-tpl").html());;
+			$('#feed-data').html(homePage(context));
+			$('#feed-data').listview('refresh');
 			
-			//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
-		   var parm = $(this).data('parm');
-		   storeParameters["index"] = parm;
-		   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
-		   $.mobile.changePage($('#detalhes'), {transition: 'none'});
-		});
-	}
-		
-	
+			$(document).on("click",'#change-page-button', function (event) {
+				
+				//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
+			   var parm = $(this).data('parm');
+			   storeParameters["index"] = parm;
+			   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
+			   $.mobile.changePage($('#detalhes'), {transition: 'none'});
+			});
+		}
+	});
+}
+
+$(document).one('pagebeforecreate', function () {
+	    $.mobile.pageContainer.prepend(panel);
+	    $("#myPanel").panel().enhanceWithin();
 });
 
 
-$(document).on('pagebeforeshow', '#detalhes', function(){
-	$('#details-data').empty(); 
-	var index = storeParameters["index"];
-	console.log("Carregando detalhes de = " + index);
-	var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
-	var image = null;
-	var hoje = Date.today().add(1).days();
-	var inicio = storeParameters.inicio;
-	var imagensData = recuperaImagemData(inicio.getTime(), hoje.getTime());
-	image = imagensData[index];
-	console.log("IMAGE = " + JSON.stringify(image));
-	var comentarios = recuperaComentarios(image);
-	console.log("Tentando fazer parse de: " + image.data);
-	var newDate = Date.parse(image.data);
-	console.log("Resultado: " + newDate);
-	var dia = newDate.toString("dd/MM");
-	var hora = newDate.toString("HH:mm");
-	var context = {
-				"index": index,
-				"id": image.idImagem,
-				"base64": imagensLib[image.idImagem],
-				"photo_label": image.nome,
-				"rating": image.rating,
-				"title": image.nome,
-				"description": image.descricao,
-				"date": dia + " às " + hora,
-				"comments": comentarios,
-				"stars": [],
-				"starsEmpty": []
-				};
-	for(var i=1; i<= 5; i++){
-		if(i <= image.rating) context["stars"].push(1);
-		else context["starsEmpty"].push(1);
-	}
-	var img = new Image();
-	img.onload = function(){
-		if(img.width > img.height){
-			context["class"] = "landscapeImage";
+
+
+	$(document).on('pagebeforeshow', '#detalhes', function(){
+		$('#details-data').empty(); 
+		var index = storeParameters["index"];
+		console.log("Carregando detalhes de = " + index);
+		var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
+		var image = null;
+		var hoje = Date.today().add(1).days();
+		var inicio = storeParameters.inicio;
+		var imagensData = recuperaImagemData(inicio.getTime(), hoje.getTime());
+		image = imagensData[index];
+		console.log("IMAGE = " + JSON.stringify(image));
+		var comentarios = recuperaComentarios(image);
+		console.log("Tentando fazer parse de: " + image.data);
+		var newDate = Date.parse(image.data);
+		console.log("Resultado: " + newDate);
+		var dia = newDate.toString("dd/MM");
+		var hora = newDate.toString("HH:mm");
+		var context = {
+					"index": index,
+					"id": image.idImagem,
+					"base64": imagensLib[image.idImagem],
+					"photo_label": image.nome,
+					"rating": image.rating,
+					"title": image.nome,
+					"description": image.descricao,
+					"date": dia + " às " + hora,
+					"comments": comentarios,
+					"stars": [],
+					"starsEmpty": []
+					};
+		for(var i=1; i<= 5; i++){
+			if(i <= image.rating) context["stars"].push(1);
+			else context["starsEmpty"].push(1);
+		}
+		var img = new Image();
+		img.onload = function(){
+			if(img.width > img.height){
+				context["class"] = "landscapeImage";
+			}
+			else{
+				context["class"] = "portraitImage";
+			}
+			var detailsPage = Handlebars.compile($("#detail-tpl").html());;
+			console.log("Img class = " + context["class"]);
+			$('#details-data').html(detailsPage(context));
+			$('#details-data').listview('refresh');
+		}
+		img.src = 'data:image/png;base64,' + context["base64"];
+		//console.log("Contexto = " + JSON.stringify(context)); 
+		
+		
+		event.stopPropagation();
+	    event.preventDefault();
+	});
+
+	$(document).on('pagebeforechange', '#detalhes', function(){
+		$(this).remove();
+		event.stopPropagation();
+	    event.preventDefault();
+	});
+
+	$('#detalhes').on('pagehide', function (event, ui) { 
+	    var page = jQuery(event.target);
+	   // if (page.attr(‘data-cache’) == ‘never’) { 
+	    page.remove(); 
+	   // }; 
+	});
+
+	$(document).on('pageinit', '#profile', function(){
+		$('#perfil-data').empty(); 
+		if(networkStatus){
+			var user = JSON.parse(window.localStorage.getItem("user"));
+			console.log("PERFIL USER DATA: " + JSON.stringify(user));
+			var context = {
+			  "nome" : user.nomeUsuario,
+			  "email" : user.email,
+			  "id" : user.idUsuario,
+			  "token" : user.token,
+			  "dataExp" : user.dataExpiracao
+			}
 		}
 		else{
-			context["class"] = "portraitImage";
+			var context = {
+				"offline" : true
+			}
 		}
-		var detailsPage = Handlebars.compile($("#detail-tpl").html());;
-		console.log("Img class = " + context["class"]);
-		$('#details-data').html(detailsPage(context));
-		$('#details-data').listview('refresh');
-	}
-	img.src = 'data:image/png;base64,' + context["base64"];
-	//console.log("Contexto = " + JSON.stringify(context)); 
-	
-	
-	event.stopPropagation();
-    event.preventDefault();
-});
+		var perfilPage = Handlebars.compile($("#perfil-tpl").html());;
+		$('#perfil-data').html(perfilPage(context));
+		$('#perfil-data').listview('refresh');
+	});
 
-$(document).on('pagebeforechange', '#detalhes', function(){
-	$(this).remove();
-	event.stopPropagation();
-    event.preventDefault();
-});
+	//Força a não carregar páginas pelo cache
+	jQuery('div').on('pagehide', function(event, ui){
+	  var page = jQuery(event.target);
 
-$('#detalhes').on('pagehide', function (event, ui) { 
-    var page = jQuery(event.target);
-   // if (page.attr(‘data-cache’) == ‘never’) { 
-    page.remove(); 
-   // }; 
-});
+	  if(page.attr('data-cache') == 'never'){
+	    page.remove();
+	  };
+	});
 
-$(document).on('pageinit', '#profile', function(){
-	$('#perfil-data').empty(); 
-	if(networkStatus){
-		var user = JSON.parse(window.localStorage.getItem("user"));
-		console.log("PERFIL USER DATA: " + JSON.stringify(user));
-		var context = {
-		  "nome" : user.nomeUsuario,
-		  "email" : user.email,
-		  "id" : user.idUsuario,
-		  "token" : user.token,
-		  "dataExp" : user.dataExpiracao
-		}
-	}
-	else{
-		var context = {
-			"offline" : true
-		}
-	}
-	var perfilPage = Handlebars.compile($("#perfil-tpl").html());;
-	$('#perfil-data').html(perfilPage(context));
-	$('#perfil-data').listview('refresh');
-});
-
-//Força a não carregar páginas pelo cache
-jQuery('div').on('pagehide', function(event, ui){
-  var page = jQuery(event.target);
-
-  if(page.attr('data-cache') == 'never'){
-    page.remove();
-  };
-});
-
-$(window).on("navigate", function (event, data) {
-  console.log("Navigate Event Triggered!");
-  var direction = data.state.direction;
-  event.preventDefault();
-  if (direction == 'back') {
-    console.log("Navigate Event Triggered! BACK");
-	 if ( $('.ui-page-active').attr('id') == 'home' || $('.ui-page-active').attr('id') == 'login') {
-		 		console.log("Estou na HOME, então irei fechar a aplicação");
-                navigator.app.exitApp();
-     } else {
-		 if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'cadastro') {
-                	$("body").pagecontainer("change", "#login");	
-		  }
-		  else{
-				
-					$("body").pagecontainer("change", "#home");
-					event.stopPropagation();
-    				event.preventDefault();
-		}
-     }
-  }
-  if (direction == 'forward') {
-    console.log("Navigate Event Triggered! FORWARD");
-	event.preventDefault();
-  }
-});
+	$(window).on("navigate", function (event, data) {
+	  console.log("Navigate Event Triggered!");
+	  var direction = data.state.direction;
+	  event.preventDefault();
+	  if (direction == 'back') {
+	    console.log("Navigate Event Triggered! BACK");
+		 if ( $('.ui-page-active').attr('id') == 'home' || $('.ui-page-active').attr('id') == 'login') {
+			 		console.log("Estou na HOME, então irei fechar a aplicação");
+	                navigator.app.exitApp();
+	     } else {
+			 if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'cadastro') {
+	                	$("body").pagecontainer("change", "#login");	
+			  }
+			  else{
+					
+						$("body").pagecontainer("change", "#home");
+						event.stopPropagation();
+	    				event.preventDefault();
+			}
+	     }
+	  }
+	  if (direction == 'forward') {
+	    console.log("Navigate Event Triggered! FORWARD");
+		event.preventDefault();
+	  }
+	});
 
 function criaUsuario(){
 		var username= $("#rusername").val();
@@ -338,6 +264,7 @@ function login(){
         var password= $("#password").val(); 
 		var dataE = { "email": mail, "senha":password};
 		$('#loading').toggle();
+		console.log("Logando: " + mail + "pass: " + password);
 		//$('#loading').show();
 		$.ajax( {
 			type: "POST",
@@ -348,16 +275,9 @@ function login(){
 			async: false,
 			success: function(data){
 				//console.log("login retrun: " + data);
-				data.email = dataE.email;
-				var date = data.dataExpiracao.toString().slice(0,data.dataExpiracao.length - 12);
-				console.log("Data cortada = " + date);
-				data.tokenDate = date;
-				var parsedDate = Date.parse(date);
-				console.log("parseDate? = " + parsedDate);
-				//console.log("Tipo de objeto na expiracao: " + Object.prototype.toString.call(data.dataExpiracao));
-				data.tokenTimeStamp = parsedDate.getTime();
-				console.log("User data: " + JSON.stringify(data));	
-				window.localStorage.setItem("user", JSON.stringify(data));
+				console.log("User data: " + JSON.stringify(data));
+				app.addUser(data.nomeUsuario, mail, data.token, data.dataExpiracao);
+				//window.localStorage.setItem("user", JSON.stringify(data));
 				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 				networkStatus = true;
 				if(offlineLib && offlineLib["size"] > 0){
@@ -403,7 +323,7 @@ function login(){
 }
 
 function logout(){
-	var user = JSON.parse(window.localStorage.getItem("user"));
+	var user = app.loadUser();
 	if(user != null){ //comunicar o server do logout
 		var data = { token: user.token};
 		$.ajax( {
@@ -415,12 +335,12 @@ function logout(){
 				async: false,
 				success: function(data){
 					console.log("Deslogado com sucesso!");	
-					clearCache();
+					//clearCache();
 					$.mobile.changePage("#login");
 				},
 				error: function (e) {
 					console.log("Login Retorno: ERROR!");
-					clearCache();
+					//clearCache();
 					$.mobile.changePage("#login");
 				}
 			});	
@@ -459,7 +379,7 @@ function criaImagem(nome, base64)
 	//console.log("Base retirado do HTML = " + base64);
 	console.log("Criar foto modo online? " + networkStatus );
 		if(networkStatus == true){
-			var user = JSON.parse(window.localStorage.getItem("user"));
+			var user = app.loadUser();
 			var token = user.token;
 			var date =  new Date();
 			var dataE = {"token" : token, "nomeFoto" : nome , "descricao" : currentDate.getTime() , "base64code" : base64};
@@ -571,7 +491,7 @@ function recuperaImagem(idFoto, token){
 }
 
 function criaComentario(){
-	var user = JSON.parse(window.localStorage.getItem("user"));
+	var user = app.loadUser();
 	var id = document.getElementById('hiddenID').innerHTML;
 	console.log("IMAGE ID COMENTARIO = " + id);
 	var comentarioText = $("#comentarioText").val();
@@ -608,7 +528,7 @@ function criaComentario(){
 }
 
 function recuperaComentarios(image){
-	var user = JSON.parse(window.localStorage.getItem("user"));
+	var user = app.loadUser();
 	var data = {"token" : user.token, "idImagem" : image.idImagem};
 	var comentarios = null;
 	$.ajax( {
@@ -630,7 +550,7 @@ function recuperaComentarios(image){
 }
 
 function recuperaImagemData(dataInicio, dataFim){
-	var user = JSON.parse(window.localStorage.getItem("user"));
+	var user = app.loadUser();
 	console.log("Recupera Imagem Data de " + dataInicio + " até " + dataFim);
 	var retorno = null;
 	if(user){
@@ -685,7 +605,7 @@ function homeContext(inicio, fim) {
 			console.log("BIBLIOTECA NULA, CRIANDO UMA!");
 			imagensLib = { };
 		}
-		var user = JSON.parse(window.localStorage.getItem("user"));
+		var user = app.loadUser();
 		//console.log("ImageLIB = " + imagensLib);
 		var context = {
 			title: "Teste",
@@ -764,7 +684,7 @@ function homeContext(inicio, fim) {
 }
 
 function offlineHomeContext() {
-		var user = JSON.parse(window.localStorage.getItem("user"));
+		var user = app.loadUser();
 		//window.localStorage.removeItem("offlineLib");
 		var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 		console.log("CONTEXTO OFFLINE = " + JSON.stringify(offlineImagensLib))
@@ -912,7 +832,7 @@ function getBase64FromImageUrl(URL) {
 function synchronize(){
 	
 	var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
-	var user = JSON.parse(window.localStorage.getItem("user"));
+	var user = app.loadUser();
 	var token = user.token;
 	console.log("Sincronizando " + offlineImagensLib["size"] + " imagens");
 	$.mobile.changePage($('#sincronizar'));
@@ -1003,7 +923,7 @@ function checkConnection() {
 }
 
 function turnOffline(){
-	var user = JSON.parse(window.localStorage.getItem("user"));
+	var user = app.loadUser();
 	var today = Date.today().getTime();
 	//if (user != null) console.log("Token expirado? " + today + " >>> " + user.tokenTimeStamp);
 	if (user == null || today > Date.parse(user.dataExpiracao).getTime()){
@@ -1015,6 +935,7 @@ function turnOffline(){
 				  "msg" : "Sua sessão expirou ou você ainda não entrou com esse dispositivo. Faça login novamente.",
 				  "offline" : false
 		}
+		app.removeUser();
 		changeToErrorPage(context);
 	}
 	else{
@@ -1043,7 +964,7 @@ function turnOnline(){
 	if (networkStatus == false){
 		networkStatus = true;
 		console.log("Modo online triggered!!!");
-		var user = JSON.parse(window.localStorage.getItem("user"));
+		var user = app.loadUser();
 		if (user == null){
 			$.mobile.changePage($('#login'));
 		}

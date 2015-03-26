@@ -12,13 +12,15 @@
 
     <!-- Importação de JS -->
     <script src="js/jquery-1.11.1.min.js"></script>
-    <script src="jquerymobile/jquery.mobile-1.4.4.js"></script>
+ 
     <script src="js/nativedroid.script.js"></script>
     <script src="js/storage/memory-store.js"></script>  
     <script type="text/javascript" src="cordova.js"></script>
     <script src="lib/handlebars.js"></script>
     <script src="js/date.js"></script>
+    <script src="js/database.js"></script>
     <script src="js/main.js"></script>
+    <script src="jquerymobile/jquery.mobile-1.4.4.js"></script>
 
     <!-- Importação de CSS -->
     <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.4.css">
@@ -27,35 +29,6 @@
     <link rel="stylesheet" href="css/nativedroid/jquerymobile.nativedroid.color.yellow.css">
     <link rel="stylesheet" href="css/nativedroid/font-awesome.min.css">
     <link rel="stylesheet" href="css/index.css">
-
-
-
-
-    <!-- Aguardando Phonegap carregar -->
-    <script>
-        document.addEventListener("deviceready", onDeviceReady, false);
-        function onDeviceReady() {
-            document.addEventListener("offline", turnOffline, false);
-            document.addEventListener("online", turnOnline, false);
-            //openDB();
-
-            // Native loading spinner
-            if (window.spinnerplugin) {
-                $.extend($.mobile, {
-                    loading: function() {
-                        // Show/hide spinner
-                        var arg = arguments ? arguments[0] : '';
-                        if (arg == 'show') spinnerplugin.show({'overlay':true});
-                        else if (arg == 'hide') spinnerplugin.hide();           
-
-                        // Compatibility with jQM 1.4
-                        return { loader: function() { } }
-                    }
-                });
-            }
-        }
-    </script>
-
 
     <style>
         .ui-btn-active{color: #fff !important;background: #FFBD21 !important;}

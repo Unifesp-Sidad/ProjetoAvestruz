@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="br.example.avestruz" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>Project Nu3</name>
+    <name>Nu3 App</name>
 	<!-- Default application icon -->
 	<icon src="www/res/icon/nu3_icon.png" />
 	<!--
