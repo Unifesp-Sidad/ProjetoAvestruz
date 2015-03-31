@@ -13,7 +13,7 @@ var storeParameters = {
 var user = null;
 var deviceReadyDeferred = $.Deferred();
 var jqmReadyDeferred = $.Deferred();
-
+var databaseDeferred = $.Deferred();
 
 document.addEventListener("deviceready", onDeviceReady, false);
 //Painel lateral template:
@@ -21,17 +21,24 @@ var panel = '<div data-role="panel" id="myPanel" data-position="left" data-displ
 //Antes de criar as paginas, será colocado o painel lateral
 
 $(document).on("mobileinit", function () {
+  console.log("JQM inicializado.")
+  //$.mobile.autoInitializePage = false;	
   jqmReadyDeferred.resolve();
 });
 
-$.when(deviceReadyDeferred, jqmReadyDeferred).then(initAplication);
+
+$.when(deviceReadyDeferred, jqmReadyDeferred, databaseDeferred).then(initAplication);
 
 function onDeviceReady() {
+	console.log("Cordova inicializado.")
     document.addEventListener("offline", turnOffline, false);
     document.addEventListener("online", turnOnline, false);
-    initDatabase();
+    var database = initDatabase();
+    if(database){
+    	databaseDeferred.resolve();
+    }
     deviceReadyDeferred.resolve();
-	user = app.loadUser();
+	
     // Native loading spinner
     if (window.spinnerplugin) {
         $.extend($.mobile, {
@@ -49,46 +56,57 @@ function onDeviceReady() {
 }
 
 function initAplication(){
-	console.log("Aplicação carregada com sucesso!");
-	$(document).on('pagebeforeshow', '#home', function(){
-		console.log("User loaded: " + JSON.stringify(user));
-		if (user == null && networkStatus == true){
-			console.log("Usuario null?");
-			$.mobile.changePage($('#login'));	
-		}
-		else{
-			$('#feed-data').empty();
-			var context = null;
-			if (networkStatus == false){
-				console.log("Changing to offline mode!");
-				context = offlineHomeContext();
-			}
-			else{
-				var hoje = Date.today().add(1).days();
-				if(storeParameters.inicio == null){
-					storeParameters.inicio = Date.parse("last sunday");	
-				}
-				console.log("Weekend guardado na memória = " + storeParameters.inicio)
-				context = homeContext(storeParameters.inicio, hoje);
-			}
-			context.user = user;
-			//var printTokenDate = user.dataExpiracao.slice(0,data.dataExpiracao.length - 12);
-			$('#tokenDate').html("teste");
-			var homePage = Handlebars.compile($("#home-tpl").html());;
-			$('#feed-data').html(homePage(context));
-			$('#feed-data').listview('refresh');
-			
-			$(document).on("click",'#change-page-button', function (event) {
-				
-				//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
-			   var parm = $(this).data('parm');
-			   storeParameters["index"] = parm;
-			   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
-			   $.mobile.changePage($('#detalhes'), {transition: 'none'});
-			});
-		}
-	});
+	console.log("Recursos carregados com sucesso. Inicializando aplicação...");
+	user = app.loadUser();
+	//var initial = '#login';
+    if(user) {
+      console.log("Usuário carregado");
+      goHome();
+      //initial = '#home';
+
+    }
+    else{
+    	console.log("Usuário nulo");
+    	$.mobile.changePage($('#login'));
+    }
+    //set the page hash to start page
+    //window.location.hash = initial;
+    //initialise jQM
+    console.log("Aplicação pronta, carregando pagina inicial");
+    //$.mobile.initializePage();	
 }
+
+$(document).on('pagebeforeshow', '#home', function(){	
+	$('#feed-data').empty();
+	var context = null;
+	if (networkStatus == false){
+		console.log("Changing to offline mode!");
+		context = offlineHomeContext();
+	}
+	else{
+		var hoje = Date.today().add(1).days();
+		if(storeParameters.inicio == null){
+			storeParameters.inicio = Date.parse("last sunday");	
+		}
+		console.log("Weekend guardado na memória = " + storeParameters.inicio)
+		context = homeContext(storeParameters.inicio, hoje);
+	}
+	context.user = user;
+	//var printTokenDate = user.dataExpiracao.slice(0,data.dataExpiracao.length - 12);
+	$('#tokenDate').html("user.dataExpiracao");
+	var homePage = Handlebars.compile($("#home-tpl").html());;
+	$('#feed-data').html(homePage(context));
+	$('#feed-data').listview('refresh');
+	
+	$(document).on("click",'#change-page-button', function (event) {
+		
+		//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
+	   var parm = $(this).data('parm');
+	   storeParameters["index"] = parm;
+	   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
+	   $.mobile.changePage($('#detalhes'), {transition: 'none'});
+	});
+});
 
 $(document).one('pagebeforecreate', function () {
 	    $.mobile.pageContainer.prepend(panel);
@@ -605,7 +623,6 @@ function homeContext(inicio, fim) {
 			console.log("BIBLIOTECA NULA, CRIANDO UMA!");
 			imagensLib = { };
 		}
-		var user = app.loadUser();
 		//console.log("ImageLIB = " + imagensLib);
 		var context = {
 			title: "Teste",

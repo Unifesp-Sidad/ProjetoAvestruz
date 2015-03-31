@@ -16,6 +16,11 @@ function initDatabase() {
     //navigator.splashscreen.hide();
 	app.openDb();
 	app.createTable();
+
+	if(app.db){
+		return true;
+	}
+	else return false;
 	//app.refresh();
 }
       
@@ -48,27 +53,29 @@ app.addUser = function(name, email, token, tokenDate) {
 
 app.loadUser = function(){
 	var db = app.db;
-	 db.transaction(function(transaction) {
-	   transaction.executeSql('SELECT * FROM users;', [],
-	     function(transaction, result) {
-	     	 console.log("DB USER SELECTED: " + JSON.stringify(result));
-	     	 if (result != null && result.rows != null) {
-	     	 	console.log("Loading user info...");
-	     	 	var row = result.rows.item(0);
-	     	 	var user = {
-	     	 		"nomeUsuario": row.username , 
-	     	 		"mail": row.email,
-	     	 		"token": row.token, 
-	     	 		"dataExpiracao": row.token_date
-	     	 	};
+	if(db != null){
+		db.transaction(function(transaction) {
+		   transaction.executeSql('SELECT * FROM users;', [],
+		     function(transaction, result) {
+		     	 console.log("DB USER SELECTED: " + JSON.stringify(result));
+		     	 if (result != null && result.rows != null) {
+		     	 	console.log("Loading user info...");
+		     	 	var row = result.rows.item(0);
+		     	 	var user = {
+		     	 		"nomeUsuario": row.username , 
+		     	 		"mail": row.email,
+		     	 		"token": row.token, 
+		     	 		"dataExpiracao": row.token_date
+		     	 	};
 
-	     	 	return user;
-	      	}
-	      	else{
-	      		return null;
-	      	}
-	     },app.onError);
-	 },app.onError);
+		     	 	return user;
+		      	}
+		      	else{
+		      		return null;
+		      	}
+		     },app.onError);
+		 },app.onError);
+	}
 }
 
 app.removeUser = function(){
