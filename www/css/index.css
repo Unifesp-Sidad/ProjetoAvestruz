@@ -1,3 +1,5 @@
+/*laranja do logo: fda702*/
+
 .btn-basico {
     background-color:#ffffff;
     -moz-border-radius:4px;
@@ -145,6 +147,13 @@ img.syncPreview{
 
 .centered{
   text-align: center;
+}
+
+.middle{
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
 }
 
 .button-style-1{

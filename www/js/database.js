@@ -61,14 +61,14 @@ app.loadUser = function(){
 		     	 if (result != null && result.rows != null) {
 		     	 	console.log("Loading user info...");
 		     	 	var row = result.rows.item(0);
-		     	 	var user = {
+		     	 	var info = {
 		     	 		"nomeUsuario": row.username , 
 		     	 		"mail": row.email,
 		     	 		"token": row.token, 
 		     	 		"dataExpiracao": row.token_date
 		     	 	};
-
-		     	 	return user;
+		     	 	console.log("DATABASE. Returning user info: " + JSON.stringify(info));
+		     	 	return info;
 		      	}
 		      	else{
 		      		return null;

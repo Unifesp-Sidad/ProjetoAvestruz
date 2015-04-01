@@ -58,8 +58,9 @@ function onDeviceReady() {
 function initAplication(){
 	console.log("Recursos carregados com sucesso. Inicializando aplicação...");
 	user = app.loadUser();
+	console.log("Dados do usuário carregado: " + JSON.stringify(user));
 	//var initial = '#login';
-    if(user) {
+    if(user != null) {
       console.log("Usuário carregado");
       goHome();
       //initial = '#home';
@@ -940,11 +941,11 @@ function checkConnection() {
 }
 
 function turnOffline(){
-	var user = app.loadUser();
 	var today = Date.today().getTime();
+	user = app.loadUser();
 	//if (user != null) console.log("Token expirado? " + today + " >>> " + user.tokenTimeStamp);
 	if (user == null || today > Date.parse(user.dataExpiracao).getTime()){
-		console.log("Usuario nulo ou token expirado");
+		console.log("Usuario nulo ou token expirado: " + JSON.stringify(user));
 		context = {
 				  "error" : "Não é possivel entrar em modo offline:",
 				  "link" : "#login",
