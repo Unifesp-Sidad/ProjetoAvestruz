@@ -16,27 +16,26 @@ var jqmReadyDeferred = $.Deferred();
 var databaseDeferred = $.Deferred();
 
 document.addEventListener("deviceready", onDeviceReady, false);
+document.addEventListener("mobileinit", onJQMReady, false);
 //Painel lateral template:
 var panel = '<div data-role="panel" id="myPanel" data-position="left" data-display="push" data-theme="a"><ul data-role="listview"><li><a href="#profile">Perfil</a></li><li><a href="#sobre">Sobre</a></li><li><a onClick="logout();">Logout</a></li><li><a href="#" data-rel="close" data-role="button" data-icon="delete" data-iconpos="right" data-inline="true">Fechar</a></li></ul><br><img src="img/logonu3.png" class="painel-img"/><p class="painel-message">Seu aplicativo de acompanhamento nutricional.</p><div class="ui-footer ui-bar-a"><h4 class="ui-title">Visite:</h4><a href="http://nu3.strikingly.com/" rel="external" target="_blank">nu3.strikingly.com</a></div></div>';
 //Antes de criar as paginas, será colocado o painel lateral
 
-$(document).on("mobileinit", function () {
-  console.log("JQM inicializado.")
-  //$.mobile.autoInitializePage = false;	
-  jqmReadyDeferred.resolve();
-});
+function onJQMReady(){
+	 console.log("JQM inicializado.")
+ 	 //$.mobile.autoInitializePage = false;	
+  	jqmReadyDeferred.resolve();
+}
 
-
-$.when(deviceReadyDeferred, jqmReadyDeferred, databaseDeferred).then(initAplication);
+$.when(deviceReadyDeferred, databaseDeferred).then(initAplication);
 
 function onDeviceReady() {
 	console.log("Cordova inicializado.")
     document.addEventListener("offline", turnOffline, false);
     document.addEventListener("online", turnOnline, false);
-    var database = initDatabase();
-    if(database){
-    	databaseDeferred.resolve();
-    }
+    var outputPromise = initDatabase().then(function (r){
+    	console.log("Database loaded: " + r);
+    	databaseDeferred.resolve()});
     deviceReadyDeferred.resolve();
 	
     // Native loading spinner
@@ -57,19 +56,29 @@ function onDeviceReady() {
 
 function initAplication(){
 	console.log("Recursos carregados com sucesso. Inicializando aplicação...");
-	user = app.loadUser();
-	console.log("Dados do usuário carregado: " + JSON.stringify(user));
-	//var initial = '#login';
-    if(user != null) {
-      console.log("Usuário carregado");
-      goHome();
-      //initial = '#home';
+	app.loadUser().then(
+		function onFulfilled(result){
+			user = result;
+			console.log("Dados do usuário carregado: " + JSON.stringify(user));
+		//var initial = '#login';
+		    if(user != null) {
+		      console.log("Usuário carregado");
+		      goHome();
+		      //initial = '#home';
 
-    }
-    else{
-    	console.log("Usuário nulo");
-    	$.mobile.changePage($('#login'));
-    }
+		    }
+		    else{
+		    	console.log("Usuário nulo");
+		    	$.mobile.changePage($('#login'));
+		    }
+
+		},
+		function onBroken(error){
+			console.error("Couldn't get user: " + error);
+		}
+
+	);
+	
     //set the page hash to start page
     //window.location.hash = initial;
     //initialise jQM
@@ -93,8 +102,8 @@ $(document).on('pagebeforeshow', '#home', function(){
 		context = homeContext(storeParameters.inicio, hoje);
 	}
 	context.user = user;
-	//var printTokenDate = user.dataExpiracao.slice(0,data.dataExpiracao.length - 12);
-	$('#tokenDate').html("user.dataExpiracao");
+	var printTokenDate = user.dataExpiracao.slice(0,user.dataExpiracao.length - 12);
+	$('#tokenDate').html(printTokenDate);
 	var homePage = Handlebars.compile($("#home-tpl").html());;
 	$('#feed-data').html(homePage(context));
 	$('#feed-data').listview('refresh');
@@ -188,7 +197,6 @@ $(document).one('pagebeforecreate', function () {
 	$(document).on('pageinit', '#profile', function(){
 		$('#perfil-data').empty(); 
 		if(networkStatus){
-			var user = JSON.parse(window.localStorage.getItem("user"));
 			console.log("PERFIL USER DATA: " + JSON.stringify(user));
 			var context = {
 			  "nome" : user.nomeUsuario,
@@ -296,6 +304,12 @@ function login(){
 				//console.log("login retrun: " + data);
 				console.log("User data: " + JSON.stringify(data));
 				app.addUser(data.nomeUsuario, mail, data.token, data.dataExpiracao);
+				user = {
+					"nomeUsuario": data.nomeUsuario,
+					"mail": mail,
+					"token": data.token,
+					"dataExpiracao": data.dataExpiracao 
+				}
 				//window.localStorage.setItem("user", JSON.stringify(data));
 				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 				networkStatus = true;
@@ -342,7 +356,6 @@ function login(){
 }
 
 function logout(){
-	var user = app.loadUser();
 	if(user != null){ //comunicar o server do logout
 		var data = { token: user.token};
 		$.ajax( {
@@ -354,20 +367,14 @@ function logout(){
 				async: false,
 				success: function(data){
 					console.log("Deslogado com sucesso!");	
-					//clearCache();
-					$.mobile.changePage("#login");
 				},
 				error: function (e) {
 					console.log("Login Retorno: ERROR!");
-					//clearCache();
-					$.mobile.changePage("#login");
 				}
 			});	
 	}
-	else{
-		$.mobile.changePage("#login");
-	}
-	  
+	//clearCache();
+	$.mobile.changePage("#login");  
 }
 
 function clearCache(){
@@ -398,7 +405,6 @@ function criaImagem(nome, base64)
 	//console.log("Base retirado do HTML = " + base64);
 	console.log("Criar foto modo online? " + networkStatus );
 		if(networkStatus == true){
-			var user = app.loadUser();
 			var token = user.token;
 			var date =  new Date();
 			var dataE = {"token" : token, "nomeFoto" : nome , "descricao" : currentDate.getTime() , "base64code" : base64};
@@ -510,7 +516,6 @@ function recuperaImagem(idFoto, token){
 }
 
 function criaComentario(){
-	var user = app.loadUser();
 	var id = document.getElementById('hiddenID').innerHTML;
 	console.log("IMAGE ID COMENTARIO = " + id);
 	var comentarioText = $("#comentarioText").val();
@@ -547,7 +552,6 @@ function criaComentario(){
 }
 
 function recuperaComentarios(image){
-	var user = app.loadUser();
 	var data = {"token" : user.token, "idImagem" : image.idImagem};
 	var comentarios = null;
 	$.ajax( {
@@ -569,7 +573,6 @@ function recuperaComentarios(image){
 }
 
 function recuperaImagemData(dataInicio, dataFim){
-	var user = app.loadUser();
 	console.log("Recupera Imagem Data de " + dataInicio + " até " + dataFim);
 	var retorno = null;
 	if(user){
@@ -702,7 +705,6 @@ function homeContext(inicio, fim) {
 }
 
 function offlineHomeContext() {
-		var user = app.loadUser();
 		//window.localStorage.removeItem("offlineLib");
 		var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 		console.log("CONTEXTO OFFLINE = " + JSON.stringify(offlineImagensLib))
@@ -819,7 +821,7 @@ encodeImageUri = function(imageUri, callback) {
         if(typeof callback === 'function'){
             var dataURL = c.toDataURL("image/jpeg");
             //console.log("DataURL original: " + dataURL);
-            callback(dataURL.slice(22, dataURL.length));
+            callback(dataURL.slice(23, dataURL.length));
         }
     };
     img.src = imageUri;
@@ -850,7 +852,6 @@ function getBase64FromImageUrl(URL) {
 function synchronize(){
 	
 	var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
-	var user = app.loadUser();
 	var token = user.token;
 	console.log("Sincronizando " + offlineImagensLib["size"] + " imagens");
 	$.mobile.changePage($('#sincronizar'));
@@ -942,7 +943,6 @@ function checkConnection() {
 
 function turnOffline(){
 	var today = Date.today().getTime();
-	user = app.loadUser();
 	//if (user != null) console.log("Token expirado? " + today + " >>> " + user.tokenTimeStamp);
 	if (user == null || today > Date.parse(user.dataExpiracao).getTime()){
 		console.log("Usuario nulo ou token expirado: " + JSON.stringify(user));
@@ -953,7 +953,6 @@ function turnOffline(){
 				  "msg" : "Sua sessão expirou ou você ainda não entrou com esse dispositivo. Faça login novamente.",
 				  "offline" : false
 		}
-		app.removeUser();
 		changeToErrorPage(context);
 	}
 	else{
@@ -982,7 +981,6 @@ function turnOnline(){
 	if (networkStatus == false){
 		networkStatus = true;
 		console.log("Modo online triggered!!!");
-		var user = app.loadUser();
 		if (user == null){
 			$.mobile.changePage($('#login'));
 		}

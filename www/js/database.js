@@ -14,13 +14,10 @@ app.openDb = function() {
 
 function initDatabase() {
     //navigator.splashscreen.hide();
-	app.openDb();
-	app.createTable();
-
-	if(app.db){
-		return true;
-	}
-	else return false;
+    app.openDb();
+    var deferred = Q.defer();
+	deferred.resolve(app.createTable());
+	return deferred.promise;
 	//app.refresh();
 }
       
@@ -53,12 +50,13 @@ app.addUser = function(name, email, token, tokenDate) {
 
 app.loadUser = function(){
 	var db = app.db;
+	var deferred = Q.defer();
 	if(db != null){
 		db.transaction(function(transaction) {
 		   transaction.executeSql('SELECT * FROM users;', [],
 		     function(transaction, result) {
 		     	 console.log("DB USER SELECTED: " + JSON.stringify(result));
-		     	 if (result != null && result.rows != null) {
+		     	 if (result != null && result.rows != 0) {
 		     	 	console.log("Loading user info...");
 		     	 	var row = result.rows.item(0);
 		     	 	var info = {
@@ -68,14 +66,16 @@ app.loadUser = function(){
 		     	 		"dataExpiracao": row.token_date
 		     	 	};
 		     	 	console.log("DATABASE. Returning user info: " + JSON.stringify(info));
-		     	 	return info;
+		     	 	deferred.resolve(info);
 		      	}
 		      	else{
-		      		return null;
+		      		console.log("Sem usuário no banco de dados...");
+		      		deferred.resolve(null);
 		      	}
 		     },app.onError);
 		 },app.onError);
 	}
+	return deferred.promise;
 }
 
 app.removeUser = function(){
@@ -96,6 +96,17 @@ app.addPhoto = function(id, title, base64, data, rating) {
 					  [id, title, base64, data, rating, addedOn],
 					  app.onSuccess,
 					  app.onError);
+	});
+}
+
+app.loadPhoto = function(id){
+	var db = app.db;
+	db.transaction(function(tx){
+		tx.executeSql("SELECT * FROM imagensLib WHERE id=?;", [id], function(tx, result){
+			console.log("DB PHOTO LOADED: " + JSON.stringigy(result));
+			return result;
+
+		})
 	});
 }
 
