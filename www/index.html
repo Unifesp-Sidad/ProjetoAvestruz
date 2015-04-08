@@ -121,7 +121,7 @@
                            </center>
                            <hr class="prettyline">
                            {{/if}}
-                           <li><a data-parm="{{index}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}" alt="{{photo_label}}">
+                           <li><a data-parm="{{idImagem}}" href="#detalhe" id="change-page-button"><img src="data:image/png;base64,{{base64}}">
                                 <p class="position-right">
                                     {{#each this.stars}}
                                     <img src="img/star_full.png" alt="star" width="10px" height="10px">
@@ -130,7 +130,7 @@
                                     <img src="img/star_empty.png" alt="star" width="10px" height="10px">
                                     {{/each}}
                                 </p>
-                                <h2 style="padding-left: 5px;"><strong>{{title}}</strong></h2>
+                                <h2 style="padding-left: 5px;"><strong>{{nome}}</strong></h2>
 
                                 {{#if this.ultimoComentario}}
                                     <p>{{ultimoComentario}}</p>

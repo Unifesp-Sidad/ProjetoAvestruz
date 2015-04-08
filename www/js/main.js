@@ -34,7 +34,7 @@ function onDeviceReady() {
     document.addEventListener("offline", turnOffline, false);
     document.addEventListener("online", turnOnline, false);
     var outputPromise = initDatabase().then(function (r){
-    	console.log("Database loaded: " + r);
+    	console.log("Database loaded");
     	databaseDeferred.resolve()});
     deviceReadyDeferred.resolve();
 	
@@ -88,25 +88,42 @@ function initAplication(){
 
 $(document).on('pagebeforeshow', '#home', function(){	
 	$('#feed-data').empty();
-	var context = null;
-	if (networkStatus == false){
+	if (networkStatus == false){ //Carregar o contexto do modo offline
 		console.log("Changing to offline mode!");
-		context = offlineHomeContext();
+		var context = offlineHomeContext();
+		loadHomeFeed(context);
 	}
-	else{
+	else{ //carregar o contexto do modo online
 		var hoje = Date.today().add(1).days();
 		if(storeParameters.inicio == null){
-			storeParameters.inicio = Date.parse("last sunday");	
+			storeParameters.inicio = Date.parse("last sunday");	//pega a data do ultimo final de semana
 		}
-		console.log("Weekend guardado na memória = " + storeParameters.inicio)
-		context = homeContext(storeParameters.inicio, hoje);
+		//console.log("Weekend guardado na memória = " + storeParameters.inicio)
+		console.log("Criando promessa de contexto...");
+		var contextPromise = homeContext(storeParameters.inicio, hoje);
+		contextPromise.then(
+			function onFulfilled(context){
+				//promessa do contexto foi cumprida
+				console.log("Context Promise Fulfilled!");
+				loadHomeFeed(context);
+			},
+			function onRejected(reason){
+				//promessa não cumprida TODO: criar log da reason...
+				console.log("Context Promise Rejected!");
+			   erro = {
+				  "error" : "Ops...",
+				  "link" : "#login",
+				  "btn-text": "Login",
+				  "msg" : "Houve um erro ao tentar carregar as fotos do servidor. Verifique sua conexão.",
+				  "offline" : true
+				}
+				networkStatus = false;
+				changeToErrorPage(erro);
+			}
+		);
+		console.log("Esperando promessa ser cumprida...");
 	}
-	context.user = user;
-	var printTokenDate = user.dataExpiracao.slice(0,user.dataExpiracao.length - 12);
-	$('#tokenDate').html(printTokenDate);
-	var homePage = Handlebars.compile($("#home-tpl").html());;
-	$('#feed-data').html(homePage(context));
-	$('#feed-data').listview('refresh');
+	
 	
 	$(document).on("click",'#change-page-button', function (event) {
 		
@@ -117,6 +134,15 @@ $(document).on('pagebeforeshow', '#home', function(){
 	   $.mobile.changePage($('#detalhes'), {transition: 'none'});
 	});
 });
+
+function loadHomeFeed(context){
+	context.user = user;
+	var printTokenDate = user.dataExpiracao.slice(0,user.dataExpiracao.length - 12);
+	$('#tokenDate').html(printTokenDate);
+	var homePage = Handlebars.compile($("#home-tpl").html());;
+	$('#feed-data').html(homePage(context));
+	$('#feed-data').listview('refresh');
+}
 
 $(document).one('pagebeforecreate', function () {
 	    $.mobile.pageContainer.prepend(panel);
@@ -136,49 +162,63 @@ $(document).one('pagebeforecreate', function () {
 		var inicio = storeParameters.inicio;
 		var imagensData = recuperaImagemData(inicio.getTime(), hoje.getTime());
 		image = imagensData[index];
-		console.log("IMAGE = " + JSON.stringify(image));
-		var comentarios = recuperaComentarios(image);
-		console.log("Tentando fazer parse de: " + image.data);
-		var newDate = Date.parse(image.data);
-		console.log("Resultado: " + newDate);
-		var dia = newDate.toString("dd/MM");
-		var hora = newDate.toString("HH:mm");
-		var context = {
-					"index": index,
-					"id": image.idImagem,
-					"base64": imagensLib[image.idImagem],
-					"photo_label": image.nome,
-					"rating": image.rating,
-					"title": image.nome,
-					"description": image.descricao,
-					"date": dia + " às " + hora,
-					"comments": comentarios,
-					"stars": [],
-					"starsEmpty": []
-					};
-		for(var i=1; i<= 5; i++){
-			if(i <= image.rating) context["stars"].push(1);
-			else context["starsEmpty"].push(1);
-		}
-		var img = new Image();
-		img.onload = function(){
-			if(img.width > img.height){
-				context["class"] = "landscapeImage";
+		if(image == null){
+			context = {
+			  "error" : "Erro de conexão",
+			  "link" : "#login",
+			  "btn-text": "Login",
+			  "msg" : "Houve um erro ao tentar carregar a foto do servidor. Verifique sua conexão.",
+			  "offline" : true
 			}
-			else{
-				context["class"] = "portraitImage";
-			}
-			var detailsPage = Handlebars.compile($("#detail-tpl").html());;
-			console.log("Img class = " + context["class"]);
-			$('#details-data').html(detailsPage(context));
-			$('#details-data').listview('refresh');
+			networkStatus = false;
+			changeToErrorPage(context);
+
 		}
-		img.src = 'data:image/png;base64,' + context["base64"];
-		//console.log("Contexto = " + JSON.stringify(context)); 
+		else{
+			console.log("IMAGE = " + JSON.stringify(image));
+			var comentarios = recuperaComentarios(image);
+			console.log("Tentando fazer parse de: " + image.data);
+			var newDate = Date.parse(image.data);
+			console.log("Resultado: " + newDate);
+			var dia = newDate.toString("dd/MM");
+			var hora = newDate.toString("HH:mm");
+			var context = {
+						"index": index,
+						"id": image.idImagem,
+						"base64": imagensLib[image.idImagem],
+						"photo_label": image.nome,
+						"rating": image.rating,
+						"title": image.nome,
+						"description": image.descricao,
+						"date": dia + " às " + hora,
+						"comments": comentarios,
+						"stars": [],
+						"starsEmpty": []
+						};
+			for(var i=1; i<= 5; i++){
+				if(i <= image.rating) context["stars"].push(1);
+				else context["starsEmpty"].push(1);
+			}
+			var img = new Image();
+			img.onload = function(){
+				if(img.width > img.height){
+					context["class"] = "landscapeImage";
+				}
+				else{
+					context["class"] = "portraitImage";
+				}
+				var detailsPage = Handlebars.compile($("#detail-tpl").html());;
+				console.log("Img class = " + context["class"]);
+				$('#details-data').html(detailsPage(context));
+				$('#details-data').listview('refresh');
+			}
+			img.src = 'data:image/png;base64,' + context["base64"];
+			//console.log("Contexto = " + JSON.stringify(context));
+			event.stopPropagation();
+	    	event.preventDefault();
+
+		}
 		
-		
-		event.stopPropagation();
-	    event.preventDefault();
 	});
 
 	$(document).on('pagebeforechange', '#detalhes', function(){
@@ -346,11 +386,7 @@ function login(){
 					}
 					networkStatus = false;
 				}
-				console.log("Changing page to 'Error'");
-				$.mobile.changePage("#error");
-				var errorPage = Handlebars.compile($("#error-tpl").html());
-				$('#error-data').html(errorPage(context));
-				$('#error-data').listview('refresh');
+				changeToErrorPage(context);
 			}
 		});  
 }
@@ -417,9 +453,14 @@ function criaImagem(nome, base64)
 				async: false,
 				success: function (data){
 					console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
-					storeParameters.refresh = true;
-					clearPhotoEntries();
-					$.mobile.changePage("#home");
+					app.addPhoto(data, base64).then(
+						function(){
+							storeParameters.refresh = true;
+							clearPhotoEntries();
+							$.mobile.changePage("#home");
+						}
+					);
+					
 				},
 				error: function (e) {
 					if(e.responseJSON && e.responseJSON.msg == "Token invalido"){
@@ -439,9 +480,7 @@ function criaImagem(nome, base64)
 						  "msg" : "Verifique se seu dispositivo está conectado à internet e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve."
 						}
 					}
-					$.mobile.changePage("#error");
-					var errorPage = Handlebars.compile($("#error-tpl").html());;
-					$('#error-data').html(errorPage(context));
+					changeToErrorPage(context);
 				}
 			});
 		}
@@ -494,25 +533,28 @@ function manipulaImagem(){
 }
 
 function recuperaImagem(idFoto, token){
-	var dataE = {"token" : token, "idImagem" : idFoto};
-	var base64;
-	$.ajax( {
-			type: "POST",
-			url: urlService + "image/obtemImagem",
-			data: dataE,
-			contentType: "application/json; charset=utf-8",
-			dataType: "text",
-			async: false,
-			success: function(data){
-				base64 = data;
-				console.log("Foto recuperada com sucesso!");	
-			},
-			error: function (e) {
-				base64 = null;
-				console.log("recuperaImagem Retorno: ERROR!" + JSON.stringify(e));
-			}
-	}); 
-	return base64; 
+	return Q.fcall(function () {
+    	var dataE = {"token" : token, "idImagem" : idFoto};
+		var base64;
+		$.ajax( {
+				type: "POST",
+				url: urlService + "image/obtemImagem",
+				data: dataE,
+				contentType: "application/json; charset=utf-8",
+				dataType: "text",
+				async: false,
+				success: function(data){
+					base64 = data;
+					console.log("Foto recuperada com sucesso!");	
+				},
+				error: function (e) {
+					base64 = null;
+					console.log("recuperaImagem Retorno: ERROR!" + JSON.stringify(e));
+				}
+		}); 
+		return base64; 
+	});
+	
 }
 
 function criaComentario(){
@@ -619,41 +661,66 @@ function recuperaImagemData(dataInicio, dataFim){
 }
 
 function homeContext(inicio, fim) {
-		console.log("REFRESH???? = " + storeParameters.refresh);
-		//console.log("ImagemData  = " + JSON.stringify(imagensData));
-		//window.localStorage.removeItem("user");
-		var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
-		if(imagensLib == null){
-			console.log("BIBLIOTECA NULA, CRIANDO UMA!");
-			imagensLib = { };
-		}
-		//console.log("ImageLIB = " + imagensLib);
-		var context = {
-			title: "Teste",
-			feed: [],
-		}
-		if(storeParameters.refresh == true){
-			var imagensData = recuperaImagemData(inicio.getTime(), fim.getTime());
-			if(imagensData && imagensData.length > 0){
-				var previousWeekend = null;
-				for (var i = imagensData.length - 1; i>=0; i--){
-					//console.log(i +" =>" +  imagensLib.images[i].nome);
-					var json = imagensData[i]; //idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
-					var newDate = Date.parse(json.data);
-					var image = {
-						"index": i,
-						"data": newDate,
-						"id": json.idImagem,
-						"photo_label" : json.nome,
-						"title": json.nome,
-						"description": json.descricao,
-						"rating": json.rating,
-						"stars": [],
-						"starsEmpty": []
+	console.log("REFRESH???? = " + storeParameters.refresh);
+	var deferred = Q.defer();
+	var context = {
+		title: "Teste",
+		feed: [],
+	}
+	if(storeParameters.refresh == true){
+		var imagensData = recuperaImagemData(inicio.getTime(), fim.getTime());
+		if(imagensData && imagensData.length > 0){
+			var previousWeekend = null;
+			var imagePromises = []; //Array de promeças para cada imagem carregada no loop
+
+			for (var i = imagensData.length - 1; i>=0; i--){
+				console.log("Getting index " + i + " data...");
+				var json = imagensData[i]; //idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
+				//precisa fazer uma promisse para carregar o base64 do SQLite
+				json["index"] = i;
+				var base64Promise = app.loadPhoto(json);
+				base64Promise.then(
+					function onFulfilled(json){
+						console.log("Base64 já existente no banco de dados");
+						return json;
+
+					},
+					function onRejected(json){
+						console.log("Base64 não presente no banco de dados");
+						//pede para o webservice a base64 e então adiciona no banco de dados
+						recuperaImagem(json.idImagem, user.token).then(
+							function (base){
+								if (base != null){
+									json["base64"] = base;
+									app.addPhoto(json.idImagem, base);
+									return json;
+								}
+								else{
+									context = {
+									  "error" : "Erro de conexão",
+									  "link" : "#login",
+									  "btn-text": "Login",
+									  "msg" : "Verifique se seu dispositivo está conectado à internet, e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve.",
+									  "offline" : true
+									}
+									changeToErrorPage(context);
+								}
+
+							}
+							
+						);
+
 					}
+				).then(function(json){
+					console.log("Achou a foto? Finally!!!");
+					console.log("Base: " + json["base64"].slice(0,10) + "......");
+					var newDate = Date.parse(json.data);
+					console.log("Data: " + JSON.stringify(newDate));
+					json["stars"] = [];
+					json["starsEmpty"] = [];
 					for(var j=1; j<= 5; j++){
-						if(j <= image.rating) image["stars"].push(1);
-						else image["starsEmpty"].push(1);
+						if(j <= json.rating) json["stars"].push(1);
+						else json["starsEmpty"].push(1);
 					}
 					//logica para dividir o feed semanalmente:
 					if(newDate != null){
@@ -664,44 +731,44 @@ function homeContext(inicio, fim) {
 							//console.log("First foto do weekend: " + image["firstPhotoOfTheWeek"] + " >>> " + image["title"]);
 							var dia = ("0" + weekend.getDate()).slice(-2);
 							var mes = ("0" + (weekend.getMonth() + 1)).slice(-2);
-							image["firstPhotoOfTheWeek"] = dia +"/"+ mes;
+							json["firstPhotoOfTheWeek"] = dia +"/"+ mes;
 							previousWeekend = weekend.clone();  
 						}
 					}
-					if(imagensLib.hasOwnProperty(json.idImagem)){
-							image["base64"] = imagensLib[json.idImagem];
-					}
-					else{ //não tem base64 no armazenamento do celular, pedir ao servidor...
-						var base = recuperaImagem(json.idImagem, user.token);
-						image["base64"] = base;
-						imagensLib[json.idImagem] = base; //salva na storage do dispositivo
-					}
 					if(json.hasOwnProperty('ultimoComentario')){
-						image["ultimoComentario"] = json["ultimoComentario"].texto;
+						json["ultimoComentario"] = json["ultimoComentario"].texto; //tira do dicionario somente a parte importante
 					}
-					
-					context.feed.push(image);
-				}
+					console.log("Imagem " + json["index"] + " colocada no feed");
+					context.feed.push(json);
+				});
+				imagePromises.push(base64Promise); //adiciona no array de promeças, a promeça que eventualmente essa foto sera carregada.
 				
-				
-			}
-			else{ //semana vazia, ou seja, sem feed algum
-				var week = {
-					"emptyWeek": true,
-					"date": ("0" + inicio.getDate()).slice(-2) + "/" + ("0" + (inicio.getMonth() + 1)).slice(-2)  
-				}
-				context.feed.push(week);
-			}
-			storeParameters.feed = context.feed;
-			//storeParameters.refresh = false;
+			}//End -> for
+			Q.all(imagePromises).then(function(){
+				console.log("Todas as promessas do feed foram cumpridas...");
+				console.log("Contexto criado: " + JSON.stringify(context));
+				//Todas promessas foram compridas, então resolva a promessa do conjunto todo:
+				storeParameters.feed = context.feed;
+				deferred.resolve(context);
+			});
 
 		}
-		else{
-			context.feed = storeParameters.feed;
+		else{ //semana vazia, ou seja, sem feed algum
+			var week = {
+				"emptyWeek": true,
+				"date": ("0" + inicio.getDate()).slice(-2) + "/" + ("0" + (inicio.getMonth() + 1)).slice(-2)  
+			}
+			context.feed.push(week);
+			storeParameters.feed = context.feed;
+			deferred.resolve(context);
 		}	
-		window.localStorage.setItem("imageLib", JSON.stringify(imagensLib)); //atualiza o banco de imagens do dispositivo.
-		return context;
-	
+	}
+	else{
+		context.feed = storeParameters.feed;
+		deferred.resolve(context); 
+	}
+	console.log("Retornando uma promessa....");
+	return deferred.promise; //retorna a promessa de que o contexto ficara pronto eventualmente.
 }
 
 function offlineHomeContext() {
@@ -819,9 +886,9 @@ encodeImageUri = function(imageUri, callback) {
         ctx.drawImage(img, 0, 0);
 
         if(typeof callback === 'function'){
-            var dataURL = c.toDataURL("image/jpeg");
+            var dataURL = c.toDataURL("image/png");
             //console.log("DataURL original: " + dataURL);
-            callback(dataURL.slice(23, dataURL.length));
+            callback(dataURL.slice(22, dataURL.length));
         }
     };
     img.src = imageUri;

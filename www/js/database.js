@@ -5,7 +5,7 @@ app.openDb = function() {
 	   if (window.navigator.simulator === true) {
 	        // For debugin in simulator fallback to native SQL Lite
 	        console.log("Use built in SQL Lite");
-	        app.db = window.openDatabase("nu3app", "1.0", "Cordova Demo", 200000);
+	        app.db = window.openDatabase("nu3app", "1.0", "Cordova Demo", 20000000);
 	    }
 	    else {
 	        app.db = window.sqlitePlugin.openDatabase({name: "nu3app", androidLockWorkaround: 1});
@@ -31,7 +31,7 @@ app.createTable = function() {
 	var db = app.db;
 	db.transaction(function(tx) {
 		tx.executeSql("CREATE TABLE IF NOT EXISTS users (ID INTEGER PRIMARY KEY, username TEXT, email TEXT, token TEXT, token_exp INTEGER, token_date DATETIME, added_on DATETIME)", []);
-		tx.executeSql("CREATE TABLE IF NOT EXISTS imagensLib (ID INTEGER PRIMARY KEY ASC, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, added_on DATETIME)", []);
+		tx.executeSql("CREATE TABLE IF NOT EXISTS photos (ID TEXT PRIMARY KEY, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, added_on DATETIME)", []);
 		tx.executeSql("CREATE TABLE IF NOT EXISTS offlineLib (ID INTEGER PRIMARY KEY ASC AUTOINCREMENT, title TEXT, base64 TEXT, synch INTEGER, added_on DATETIME)", []);
 	});
 }
@@ -56,7 +56,7 @@ app.loadUser = function(){
 		   transaction.executeSql('SELECT * FROM users;', [],
 		     function(transaction, result) {
 		     	 console.log("DB USER SELECTED: " + JSON.stringify(result));
-		     	 if (result != null && result.rows != 0) {
+		     	 if (result != null && result.rows.length != 0) {
 		     	 	console.log("Loading user info...");
 		     	 	var row = result.rows.item(0);
 		     	 	var info = {
@@ -81,33 +81,69 @@ app.loadUser = function(){
 app.removeUser = function(){
 	var db = app.db;
 	db.transaction(function(transaction) {
-	   transaction.executeSql('DELETE FROM users WHERE id=1;', [],
+	   transaction.executeSql('DELETE FROM users WHERE id=1', [],
 	     function(transaction, result) {
 	     	console.log("Succecc: " + result.message); 
 	     },app.onError);
 	 },app.onError);
 }
 
-app.addPhoto = function(id, title, base64, data, rating) {
+app.addPhoto = function(id, base64) {
+	console.log("DB: Adding photo with id " + id);
 	var db = app.db;
+	var deferred = Q.defer();
 	db.transaction(function(tx) {
-		var addedOn = new Date();
-		tx.executeSql("INSERT INTO imagensLib(id, title, base64, data, rating, added_on) VALUES (?,?,?,?,?,?)",
-					  [id, title, base64, data, rating, addedOn],
-					  app.onSuccess,
+		tx.executeSql("INSERT INTO photos(ID, base64) VALUES (?,?)",
+					  [id, base64],
+					  function success(tx, r){
+					  		console.log("Succecc: " + JSON.stringify(r));
+					  		console.log("Base inserida: " + base64);
+					  		deferred.resolve(r);
+					  },
 					  app.onError);
 	});
+	return deferred.promise;
 }
 
-app.loadPhoto = function(id){
+app.loadPhoto = function(json){
+	var id = json.idImagem;
+	console.log("DB: Searching for photo with id " + id);
 	var db = app.db;
-	db.transaction(function(tx){
-		tx.executeSql("SELECT * FROM imagensLib WHERE id=?;", [id], function(tx, result){
-			console.log("DB PHOTO LOADED: " + JSON.stringigy(result));
-			return result;
-
-		})
-	});
+	var deferred = Q.defer();
+	db.transaction(
+		function(tx){
+			tx.executeSql(
+				"SELECT base64 FROM photos WHERE ID=?", 
+				[id], 
+				function(tx, result){
+					var len = result.rows.length;
+					
+					if(len>0){
+						var row = result.rows.item(0);
+						console.log("DB: Photo with id " + id + " loaded.");
+						//console.log("ROW: " + JSON.stringify(row));
+						var base = row["base64"];
+						json["base64"] = base;
+						//deferred.resolve(result.rows.item(0)['base64']);
+						deferred.resolve(json);
+					}
+					else{
+						json[base64] = null;
+						deferred.reject(json);
+					}
+				},
+				function(tx, error){
+					console.log("DB PHOTO ERROR: " + error.message);
+					deferred.reject(json);
+				}
+			);
+		}, 
+		function onError(tx, error){
+			console.log("DB load photo error: " + error.message);
+			deferred.reject(json);
+		}
+	);
+	return deferred.promise;
 }
 
 app.addOfflinePhoto = function(title, base64) {
