@@ -74,7 +74,7 @@
  
  
 .comment-textbox {
-    height: 25px;
+    height: 50px;
     width: 80%;
     border: solid 1px #E5E5E5;
     outline: 0;
@@ -262,7 +262,7 @@ img.syncPreview{
 
 .squareImage{
     display: block;
-    width: 85%;
+    width: 75%;
     background-color: #FFBD21;
     margin-left: auto;
     margin-right: auto;

@@ -31,8 +31,7 @@ app.createTable = function() {
 	var db = app.db;
 	db.transaction(function(tx) {
 		tx.executeSql("CREATE TABLE IF NOT EXISTS users (ID INTEGER PRIMARY KEY, username TEXT, email TEXT, token TEXT, token_exp INTEGER, token_date DATETIME, added_on DATETIME)", []);
-		tx.executeSql("CREATE TABLE IF NOT EXISTS photos (ID TEXT PRIMARY KEY, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, added_on DATETIME)", []);
-		tx.executeSql("CREATE TABLE IF NOT EXISTS offlineLib (ID INTEGER PRIMARY KEY ASC AUTOINCREMENT, title TEXT, base64 TEXT, synch INTEGER, added_on DATETIME)", []);
+		tx.executeSql("CREATE TABLE IF NOT EXISTS photos (ID TEXT PRIMARY KEY, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, synchronized INTEGER, added_on DATETIME)", []);
 	});
 }
 
@@ -88,48 +87,45 @@ app.removeUser = function(){
 	 },app.onError);
 }
 
-app.addPhoto = function(id, base64) {
-	console.log("DB: Adding photo with id " + id);
+app.addPhoto = function(json, base64, mode) {
+	//mode defina se a foto está sendo adicionada no modo online ou offline
+	console.log("DB: Adding photo with id " + json.idImagem);
 	var db = app.db;
 	var deferred = Q.defer();
-	db.transaction(function(tx) {
-		tx.executeSql("INSERT INTO photos(ID, base64) VALUES (?,?)",
-					  [id, base64],
+	db.transaction(function(tx) { //ID TEXT PRIMARY KEY, title TEXT, base64 TEXT, data DATETIME, rating INTEGER, added_on DATETIME, stars INTEGER, starsEmpty INTEGER
+		tx.executeSql("INSERT INTO photos(ID, title, base64, data, rating, synchronized) VALUES (?,?,?,?,?,?)",
+					  [json.idImagem, json.nome, base64, json.data, json.rating, mode],
 					  function success(tx, r){
-					  		console.log("Succecc: " + JSON.stringify(r));
-					  		console.log("Base inserida: " + base64);
-					  		deferred.resolve(r);
+					  		console.log("Photo Succecc: " + JSON.stringify(r));
+					  		deferred.resolve(base64);
 					  },
 					  app.onError);
 	});
 	return deferred.promise;
 }
 
-app.loadPhoto = function(json){
-	var id = json.idImagem;
+app.loadPhoto = function(id){
 	console.log("DB: Searching for photo with id " + id);
 	var db = app.db;
 	var deferred = Q.defer();
 	db.transaction(
 		function(tx){
 			tx.executeSql(
-				"SELECT base64 FROM photos WHERE ID=?", 
+				"SELECT * FROM photos WHERE ID=?", 
 				[id], 
 				function(tx, result){
-					var len = result.rows.length;
 					
+					var len = result.rows.length;
+					//console.log("DB: found photo " + id + "   row lenght: " + len);
 					if(len>0){
 						var row = result.rows.item(0);
 						console.log("DB: Photo with id " + id + " loaded.");
 						//console.log("ROW: " + JSON.stringify(row));
-						var base = row["base64"];
-						json["base64"] = base;
 						//deferred.resolve(result.rows.item(0)['base64']);
-						deferred.resolve(json);
+						deferred.resolve(row);
 					}
 					else{
-						json[base64] = null;
-						deferred.reject(json);
+						deferred.resolve(null);
 					}
 				},
 				function(tx, error){
@@ -146,15 +142,64 @@ app.loadPhoto = function(json){
 	return deferred.promise;
 }
 
-app.addOfflinePhoto = function(title, base64) {
+app.loadOfflineLib = function(){
+	console.log("DB: Searching for photos not synchronized");
+	var db = app.db;
+	var deferred = Q.defer();
+	db.transaction(
+		function(tx){
+			tx.executeSql(
+				"SELECT * FROM photos WHERE synchronized=0", 
+				[], 
+				function(tx, result){
+					
+					var len = result.rows.length;
+					//console.log("DB: found photo " + id + "   row lenght: " + len);
+					if(len>0){
+						deferred.resolve(result.rows);
+					}
+					else{
+						deferred.resolve(null);
+					}
+				},
+				function(tx, error){
+					console.log("DB PHOTO ERROR: " + error.message);
+					deferred.reject(json);
+				}
+			);
+		}, 
+		function onError(tx, error){
+			console.log("DB load photo error: " + error.message);
+			deferred.reject(json);
+		}
+	);
+	return deferred.promise;
+}
+
+app.updateRating = function(id, rating){
 	var db = app.db;
 	db.transaction(function(tx) {
-		var addedOn = new Date();
-		tx.executeSql("INSERT INTO offlineLib(title, base64, synch, added_on) VALUES (?,?,?,?)",
-					  [title, base64, 0, addedOn],
+		tx.executeSql("UPDATE photos SET rating= ? WHERE ID = ?",
+					  [id, rating],
 					  app.onSuccess,
 					  app.onError);
 	});
+
+}
+
+app.updateSynch = function(id, data){
+	var db = app.db;
+	var deferred = Q.defer();
+	db.transaction(function(tx) {
+		tx.executeSql("UPDATE photos SET id= ?, synchronized = 1 WHERE ID = ?",
+					  [data.idImagem, id],
+					  function success(result){
+					  	console.log("Photo id successfully edited");
+					  	deferred.resolve();
+					  },
+					  app.onError);
+	});
+	return deferred.promise
 }
       
 app.onError = function(tx, e) {

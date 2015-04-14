@@ -3,7 +3,7 @@ var urlService = "http://200.144.93.244/nutri-rest-patient/rest/";
 var globalIndex = null;
 var networkStatus = true;
 var storeParameters = {
-	index : null,
+	id : null,
 	inicio: null,
 	feed: null,
 	feedSize: 0,
@@ -56,6 +56,7 @@ function onDeviceReady() {
 
 function initAplication(){
 	console.log("Recursos carregados com sucesso. Inicializando aplicação...");
+	checkConnection();
 	app.loadUser().then(
 		function onFulfilled(result){
 			user = result;
@@ -86,12 +87,32 @@ function initAplication(){
     //$.mobile.initializePage();	
 }
 
+$(document).on('pageinit', '#home', function(){
+	$(document).on("click",'#change-page-button', function (event) {
+		
+		//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
+	   var parm = $(this).data('parm');
+	   storeParameters["id"] = parm;
+	   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
+	   $.mobile.changePage($('#detalhes'), {transition: 'none'});
+	});
+
+});
+
 $(document).on('pagebeforeshow', '#home', function(){	
 	$('#feed-data').empty();
+	//$('#home').hide();
 	if (networkStatus == false){ //Carregar o contexto do modo offline
 		console.log("Changing to offline mode!");
-		var context = offlineHomeContext();
-		loadHomeFeed(context);
+		offlineHomeContext().then(
+			function onFulfilled(context){
+				loadHomeFeed(context);
+				//$('#home').show();
+			},
+			function onRejected(){
+				console.log("Erro ao criar contexto offline");
+			}
+		);
 	}
 	else{ //carregar o contexto do modo online
 		var hoje = Date.today().add(1).days();
@@ -106,6 +127,8 @@ $(document).on('pagebeforeshow', '#home', function(){
 				//promessa do contexto foi cumprida
 				console.log("Context Promise Fulfilled!");
 				loadHomeFeed(context);
+				$('#loading').hide();
+				$('#home').show();
 			},
 			function onRejected(reason){
 				//promessa não cumprida TODO: criar log da reason...
@@ -125,18 +148,12 @@ $(document).on('pagebeforeshow', '#home', function(){
 	}
 	
 	
-	$(document).on("click",'#change-page-button', function (event) {
-		
-		//console.log("data test = " + $(this).data('parm') + " attr test = " + $(this).attr("data-parm"));
-	   var parm = $(this).data('parm');
-	   storeParameters["index"] = parm;
-	   //console.log("EVENT TRIGGER! INDEX SALVO = " + storeParameters["index"]);
-	   $.mobile.changePage($('#detalhes'), {transition: 'none'});
-	});
+	
 });
 
 function loadHomeFeed(context){
 	context.user = user;
+	console.log("Renderizando o home feed...");
 	var printTokenDate = user.dataExpiracao.slice(0,user.dataExpiracao.length - 12);
 	$('#tokenDate').html(printTokenDate);
 	var homePage = Handlebars.compile($("#home-tpl").html());;
@@ -152,88 +169,76 @@ $(document).one('pagebeforecreate', function () {
 
 
 
-	$(document).on('pagebeforeshow', '#detalhes', function(){
-		$('#details-data').empty(); 
-		var index = storeParameters["index"];
-		console.log("Carregando detalhes de = " + index);
-		var imagensLib = JSON.parse(window.localStorage.getItem("imageLib"));
-		var image = null;
-		var hoje = Date.today().add(1).days();
-		var inicio = storeParameters.inicio;
-		var imagensData = recuperaImagemData(inicio.getTime(), hoje.getTime());
-		image = imagensData[index];
-		if(image == null){
-			context = {
-			  "error" : "Erro de conexão",
-			  "link" : "#login",
-			  "btn-text": "Login",
-			  "msg" : "Houve um erro ao tentar carregar a foto do servidor. Verifique sua conexão.",
-			  "offline" : true
-			}
-			networkStatus = false;
-			changeToErrorPage(context);
-
-		}
-		else{
+$(document).on('pagebeforeshow', '#detalhes', function(){
+	$('#details-data').empty();
+	$('#comment-field').hide(); 
+	var id = storeParameters["id"];
+	var hoje = Date.today().add(1).days();
+	var inicio = storeParameters.inicio;
+	console.log("Carregando detalhes de = " + id);
+	var image = app.loadPhoto(id).then(
+		function onFulfilled(image){
 			console.log("IMAGE = " + JSON.stringify(image));
 			var comentarios = recuperaComentarios(image);
-			console.log("Tentando fazer parse de: " + image.data);
 			var newDate = Date.parse(image.data);
 			console.log("Resultado: " + newDate);
 			var dia = newDate.toString("dd/MM");
 			var hora = newDate.toString("HH:mm");
 			var context = {
-						"index": index,
-						"id": image.idImagem,
-						"base64": imagensLib[image.idImagem],
-						"photo_label": image.nome,
-						"rating": image.rating,
-						"title": image.nome,
-						"description": image.descricao,
-						"date": dia + " às " + hora,
-						"comments": comentarios,
-						"stars": [],
-						"starsEmpty": []
-						};
+					"id": image.ID,
+					"base64": image.base64,
+					"rating": image.rating,
+					"title": image.title,
+					"date": dia + " às " + hora,
+					"comments": comentarios,
+					"stars": [],
+					"starsEmpty": []
+					};
 			for(var i=1; i<= 5; i++){
 				if(i <= image.rating) context["stars"].push(1);
 				else context["starsEmpty"].push(1);
 			}
-			var img = new Image();
-			img.onload = function(){
-				if(img.width > img.height){
-					context["class"] = "landscapeImage";
-				}
-				else{
-					context["class"] = "portraitImage";
-				}
-				var detailsPage = Handlebars.compile($("#detail-tpl").html());;
-				console.log("Img class = " + context["class"]);
-				$('#details-data').html(detailsPage(context));
-				$('#details-data').listview('refresh');
-			}
-			img.src = 'data:image/png;base64,' + context["base64"];
+			
+			
+			context["class"] = "squareImage";
+			var detailsPage = Handlebars.compile($("#detail-tpl").html());;
+			console.log("Img class = " + context["class"]);
+			$('#details-data').html(detailsPage(context));
+			$('#details-data').listview('refresh');
+			$('#comment-field').show();
 			//console.log("Contexto = " + JSON.stringify(context));
-			event.stopPropagation();
-	    	event.preventDefault();
-
+			//event.stopPropagation();
+	    	//event.preventDefault();
+		},
+		function onRejected(motive){
+			console.log("Algo deu errado ao carregar a foto: " + id);
+			context = {
+			  "error" : "Erro de conexão",
+			  "link" : "#login",
+			  "btn-text": "Login",
+			  "msg" : "Houve um erro ao tentar carregar a foto do banco de dados.",
+			  "offline" : true
+			}
+			networkStatus = false;
+			changeToErrorPage(context);
 		}
-		
-	});
-
-	$(document).on('pagebeforechange', '#detalhes', function(){
+	);
+});
+/*
+	$(document).on('pagebeforechange', function(){
 		$(this).remove();
 		event.stopPropagation();
 	    event.preventDefault();
 	});
-
-	$('#detalhes').on('pagehide', function (event, ui) { 
+*/
+/*
+	$(document).on('pagehide', function (event, ui) { 
 	    var page = jQuery(event.target);
-	   // if (page.attr(‘data-cache’) == ‘never’) { 
-	    page.remove(); 
-	   // }; 
+	   if (page.attr('data-cache') == 'never') { 
+	    	page.remove(); 
+	    }; 
 	});
-
+*/
 	$(document).on('pageinit', '#profile', function(){
 		$('#perfil-data').empty(); 
 		if(networkStatus){
@@ -351,15 +356,22 @@ function login(){
 					"dataExpiracao": data.dataExpiracao 
 				}
 				//window.localStorage.setItem("user", JSON.stringify(data));
-				var offlineLib = JSON.parse(window.localStorage.getItem("offlineLib"));
-				networkStatus = true;
-				if(offlineLib && offlineLib["size"] > 0){
+				app.loadOfflineLib().then(
+					function onFulfilled(result){
+						console.log("OfflineLib result = " + JSON.stringify(result));
+						if(result == null){
+							goHome();
+						}
+						else{
+							synchronize(result);
+						}
 
-					synchronize();
-				}
-				else{
-					goHome();
-				}
+					},
+					function onRejected(reason){
+
+					}	
+				);
+				networkStatus = true;
 			},
 			error: function (e) {
 				console.log("Login Retorno: ERROR! = " + JSON.stringify(e));
@@ -435,8 +447,7 @@ function criaImagem(nome, base64)
 	//var text = $("#photoDesciption").val();
 	console.log("Base64 recuperado: " + base64);
 	var currentDate = new Date();
-	var day = currentDate.toString("dd/MM");
-	var hour = currentDate.toString("HH:mm");
+	
 	console.log("Current Date = " + currentDate + " timestamp: " + currentDate.getTime());
 	//console.log("Base retirado do HTML = " + base64);
 	console.log("Criar foto modo online? " + networkStatus );
@@ -453,7 +464,8 @@ function criaImagem(nome, base64)
 				async: false,
 				success: function (data){
 					console.log("IMAGEM CRIADA COM SUCESSO, ID = " + data);
-					app.addPhoto(data, base64).then(
+					data["rating"] = 0;
+					app.addPhoto(data, base64, 1).then(
 						function(){
 							storeParameters.refresh = true;
 							clearPhotoEntries();
@@ -485,31 +497,22 @@ function criaImagem(nome, base64)
 			});
 		}
 		else{
-			
+			//json.idImagem, json.nome, base64, json.data, json.rating, mode
 			var image = {
-				"currentDate": currentDate,
-				"millis": currentDate.getTime(),
-				"data_print": day + " - " + hour,
-				"photo_label" : nome,
+				"idImagem": currentDate.getTime(),
+				"data" : currentDate,
+				"rating": 0,
+				"nome" : nome,
 				"base64": base64,
-				"sincronizada": false
 			}
-			var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
-			if (offlineImagensLib){
-				offlineImagensLib["gallery"].push(image);
-				offlineImagensLib["size"] += 1; 
-				
-			}
-			else{
-				offlineImagensLib = { 
-					"size" : 1,
-					"gallery" : [image]
-				};
-			}
-			console.log("Offline lib = " + JSON.stringify(offlineImagensLib));
-			window.localStorage.setItem("offlineLib", JSON.stringify(offlineImagensLib));
-			clearPhotoEntries();
-			$.mobile.changePage("#home");
+			app.addPhoto(image, base64, 0).then(
+				function(){
+					clearPhotoEntries();
+					console.log("Foto adicionada, indo para home");
+					goHome();
+				}
+			);
+			
 		}
 }
 
@@ -594,7 +597,7 @@ function criaComentario(){
 }
 
 function recuperaComentarios(image){
-	var data = {"token" : user.token, "idImagem" : image.idImagem};
+	var data = {"token" : user.token, "idImagem" : image.ID};
 	var comentarios = null;
 	$.ajax( {
 			type: "POST",
@@ -675,78 +678,31 @@ function homeContext(inicio, fim) {
 
 			for (var i = imagensData.length - 1; i>=0; i--){
 				console.log("Getting index " + i + " data...");
-				var json = imagensData[i]; //idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
+				//idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
+				var returnedValues = buildPhotoJson(imagensData[i], previousWeekend);
+				var json = returnedValues[0];
+				previousWeekend = returnedValues[1];
+				console.log("Pre-json builded!");
+
 				//precisa fazer uma promisse para carregar o base64 do SQLite
 				json["index"] = i;
-				var base64Promise = app.loadPhoto(json);
-				base64Promise.then(
+				var basePromise = findPhotoBase(json).then(
 					function onFulfilled(json){
-						console.log("Base64 já existente no banco de dados");
-						return json;
-
+						console.log("Achou a foto? Finally!!!  " + json["idImagem"]);
+						console.log("Base: " + json["base64"].slice(0,10) + "......");
+						console.log("Imagem " + json["index"] + " colocada no feed");
+						context.feed.push(json);
 					},
-					function onRejected(json){
-						console.log("Base64 não presente no banco de dados");
-						//pede para o webservice a base64 e então adiciona no banco de dados
-						recuperaImagem(json.idImagem, user.token).then(
-							function (base){
-								if (base != null){
-									json["base64"] = base;
-									app.addPhoto(json.idImagem, base);
-									return json;
-								}
-								else{
-									context = {
-									  "error" : "Erro de conexão",
-									  "link" : "#login",
-									  "btn-text": "Login",
-									  "msg" : "Verifique se seu dispositivo está conectado à internet, e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve.",
-									  "offline" : true
-									}
-									changeToErrorPage(context);
-								}
-
-							}
-							
-						);
-
+					function onRejected(reason){
+						console.log("Algo deu errado...");
 					}
-				).then(function(json){
-					console.log("Achou a foto? Finally!!!");
-					console.log("Base: " + json["base64"].slice(0,10) + "......");
-					var newDate = Date.parse(json.data);
-					console.log("Data: " + JSON.stringify(newDate));
-					json["stars"] = [];
-					json["starsEmpty"] = [];
-					for(var j=1; j<= 5; j++){
-						if(j <= json.rating) json["stars"].push(1);
-						else json["starsEmpty"].push(1);
-					}
-					//logica para dividir o feed semanalmente:
-					if(newDate != null){
-						var weekend = newDate.last().sunday();
-						weekend.setHours(0,0,0,0);
-						//console.log("Weekend da foto " + image["index"] + "-> " + weekend);
-						if (previousWeekend == null || weekend.compareTo(previousWeekend) == -1){
-							//console.log("First foto do weekend: " + image["firstPhotoOfTheWeek"] + " >>> " + image["title"]);
-							var dia = ("0" + weekend.getDate()).slice(-2);
-							var mes = ("0" + (weekend.getMonth() + 1)).slice(-2);
-							json["firstPhotoOfTheWeek"] = dia +"/"+ mes;
-							previousWeekend = weekend.clone();  
-						}
-					}
-					if(json.hasOwnProperty('ultimoComentario')){
-						json["ultimoComentario"] = json["ultimoComentario"].texto; //tira do dicionario somente a parte importante
-					}
-					console.log("Imagem " + json["index"] + " colocada no feed");
-					context.feed.push(json);
-				});
-				imagePromises.push(base64Promise); //adiciona no array de promeças, a promeça que eventualmente essa foto sera carregada.
+				);
+				imagePromises.push(basePromise); //adiciona no array de promeças, a promeça que eventualmente essa foto sera carregada.
 				
 			}//End -> for
 			Q.all(imagePromises).then(function(){
 				console.log("Todas as promessas do feed foram cumpridas...");
-				console.log("Contexto criado: " + JSON.stringify(context));
+				console.log("Contexto criado: " + JSON.stringify(context).slice(0, 40) + ".....");
 				//Todas promessas foram compridas, então resolva a promessa do conjunto todo:
 				storeParameters.feed = context.feed;
 				deferred.resolve(context);
@@ -760,10 +716,12 @@ function homeContext(inicio, fim) {
 			}
 			context.feed.push(week);
 			storeParameters.feed = context.feed;
+			console.log("Semana vazia...");
 			deferred.resolve(context);
 		}	
 	}
 	else{
+		console.log("Puxando feed da memoria...");
 		context.feed = storeParameters.feed;
 		deferred.resolve(context); 
 	}
@@ -771,36 +729,125 @@ function homeContext(inicio, fim) {
 	return deferred.promise; //retorna a promessa de que o contexto ficara pronto eventualmente.
 }
 
+function findPhotoBase(json){
+	var deferred = Q.defer();
+	var base64Promise = app.loadPhoto(json.idImagem);
+	base64Promise.then(
+		function onFulfilled(result){
+			if (result != null){
+				json["base64"] = result["base64"];
+				if(json["rating"] != result["rating"]){
+					console.log("Atualizando rating da foto");
+					app.updateRating(json.idImagem, json.rating);
+				}
+				console.log("Base64 já existente no banco de dados");
+				deferred.resolve(json);
+			}
+			else{
+				console.log("Base64 não presente no banco de dados");
+			//pede para o webservice a base64 e então adiciona no banco de dados
+				recuperaImagem(json.idImagem, user.token).then(
+					function (base){
+						if (base != null){
+							console.log("Teste base: " + base.slice(0,10) + ".....");
+							json["base64"] = base;
+							
+							app.addPhoto(json, base).then(
+								function(){
+									console.log("Base adicionada no banco de dados...");
+								}
+							);
+							deferred.resolve(json);
+						}
+						else{
+							context = {
+							  "error" : "Erro de conexão",
+							  "link" : "#login",
+							  "btn-text": "Login",
+							  "msg" : "Verifique se seu dispositivo está conectado à internet, e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve.",
+							  "offline" : true
+							}
+							deferred.reject();
+							changeToErrorPage(context);
+						}
+
+					}
+				);
+			}
+
+		},
+		function onRejected(reason){
+			console.log("Rejected...");
+			context = {
+			  "error" : "Erro de conexão",
+			  "link" : "#login",
+			  "btn-text": "Login",
+			  "msg" : "Verifique se seu dispositivo está conectado à internet, e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve.",
+			  "offline" : true
+			}
+			changeToErrorPage(context);
+		}
+	);
+	return deferred.promise;
+}
+
+function buildPhotoJson(json, previousWeekend){
+	var newDate = Date.parse(json.data);
+	console.log("Data: " + JSON.stringify(newDate));
+	json["stars"] = [];
+	json["starsEmpty"] = [];
+	for(var j=1; j<= 5; j++){
+		if(j <= json.rating) json["stars"].push(1);
+		else json["starsEmpty"].push(1);
+	}
+	//logica para dividir o feed semanalmente:
+	if(newDate != null){
+		var weekend = newDate.last().sunday();
+		weekend.setHours(0,0,0,0);
+		//console.log("Weekend da foto " + image["index"] + "-> " + weekend);
+		if (previousWeekend == null || weekend.compareTo(previousWeekend) == -1){
+			//console.log("First foto do weekend: " + image["firstPhotoOfTheWeek"] + " >>> " + image["title"]);
+			var dia = ("0" + weekend.getDate()).slice(-2);
+			var mes = ("0" + (weekend.getMonth() + 1)).slice(-2);
+			json["firstPhotoOfTheWeek"] = dia +"/"+ mes;
+			previousWeekend = weekend.clone();  
+		}
+	}
+	if(json.hasOwnProperty('ultimoComentario')){
+		json["ultimoComentario"] = json["ultimoComentario"].texto; //tira do dicionario somente a parte importante
+	}
+	return [json, previousWeekend];
+}
+
 function offlineHomeContext() {
 		//window.localStorage.removeItem("offlineLib");
-		var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
-		console.log("CONTEXTO OFFLINE = " + JSON.stringify(offlineImagensLib))
+		var deferred = Q.defer();
 		var context = {
 			title: "Modo Offline",
 			offline: true,
 			feed: []
 		}
-		if(offlineImagensLib && offlineImagensLib["gallery"]){
-			context.hasFeed = true;
-			context.qtd = offlineImagensLib["size"];
-			console.log("Gallery = " + offlineImagensLib["gallery"]);
-			console.log("Gallery Size = " + offlineImagensLib["gallery"].length);
-			for (var i = offlineImagensLib["gallery"].length - 1; i>=0; i--){
-				console.log(i +" =>" +  offlineImagensLib["gallery"][i].photo_label);
-				var json = offlineImagensLib['gallery'][i]; //idImagem , nome, data, rating, descricao, ultimoComentario (idComentario, nomeUsuario, texto, dataEnvio)
-				console.log("Data string = " + json.currentDate.toString("d-MMM-yyyy"));
-				console.log("Data type = " + json.currentDate);
-				var image = {
-					"index": i,
-					"data": json.data_print,
-					"title" : json.photo_label,
-					"base64": json.base64
+		var offlinePromise = app.loadOfflineLib().then(
+			function onFulfilled(result){
+				if(result){
+					console.log("OfflineLib result = " + JSON.stringify(result));
+					context.hasFeed = true;
+					context.qtd = result.length;
+					for (var i = result.length - 1; i>=0; i--){
+						console.log(i + " -> " + result.item(i));
+						var image = result.item(i); 
+						context.feed.push(result.item(i));
+					}
 				}
-				context.feed.push(image);
+				storeParameters.feed = context.feed;
+				deferred.resolve(context);
+			},
+			function onRejected(reason){
+				console.log("A promessa do offline foi rejeitada por algum motivo...");
+				deferred.reject();
 			}
-		}
-		storeParameters.feed = context.feed;
-		return context;
+		);
+		return deferred.promise;
 }
 
 function loadMoreFeed(){
@@ -810,19 +857,37 @@ function loadMoreFeed(){
 	}
 	storeParameters.refresh = true;
 	var previousFeed = storeParameters.feed;
-	$('#loading').show();
+	//$('#loading').show();
 	$('#feed-data').listview('refresh');
 	var storeDate = storeParameters.inicio;
 	var newDate = storeDate.clone().addWeeks(-1);
 	console.log("Adicionado mais uma semana para feed: " + storeDate + " PARA ===> " + newDate);
-	var newWeek = homeContext(newDate, storeDate);
-	context.feed = previousFeed.concat(newWeek.feed);
-	storeParameters.feed = context.feed;
-	storeParameters.inicio = newDate.clone();
-	var homePage = Handlebars.compile($("#home-tpl").html());
-	$('#loading').hide();
-	$('#feed-data').html(homePage(context));
-	$('#feed-data').listview('refresh');
+	console.log("Criando promessa de contexto...");
+	var contextPromise = homeContext(newDate, storeDate);
+	contextPromise.then(
+		function onFulfilled(newWeek){
+			//promessa do contexto foi cumprida
+			console.log("Context Promise Fulfilled!");
+			context.feed = previousFeed.concat(newWeek.feed);
+			storeParameters.feed = context.feed;
+			storeParameters.inicio = newDate.clone();
+			loadHomeFeed(context);
+		},
+		function onRejected(reason){
+			//promessa não cumprida TODO: criar log da reason...
+			console.log("Context Promise Rejected!");
+		   erro = {
+			  "error" : "Ops...",
+			  "link" : "#login",
+			  "btn-text": "Login",
+			  "msg" : "Houve um erro ao tentar carregar as fotos do servidor. Verifique sua conexão.",
+			  "offline" : true
+			}
+			networkStatus = false;
+			changeToErrorPage(erro);
+		}
+	);
+	console.log("Esperando promessa ser cumprida...");
 }
 
 
@@ -842,6 +907,8 @@ function takePhoto() {
 
 function onCameraSuccess(imageData) {
     $.mobile.changePage($('#camera'));
+    
+
 	//Caso a camera trabalhe com base64 use esse trecho de codigo:
 	/*
 	var imgData = 'data:image/png;base64,' + imageData;
@@ -896,7 +963,7 @@ encodeImageUri = function(imageUri, callback) {
 
 function getBase64FromImageUrl(URL) {
 	encodeImageUri(URL, function(base64){
-		 console.log("Callback Return: " + base64);
+		 //console.log("Callback Return: " + base64);
 		 var ic = document.getElementById('imageContainer');
 		 ic.innerHTML = '<img src="data:image/png;base64,' + base64 + '" class="squareImage"/>';
 		 var node = document.getElementById('hiddenBase64');
@@ -916,22 +983,24 @@ function getBase64FromImageUrl(URL) {
     img.src = URL;*/
 }
 
-function synchronize(){
+function synchronize(lib){
 	
-	var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
 	var token = user.token;
-	console.log("Sincronizando " + offlineImagensLib["size"] + " imagens");
+	console.log("Sincronizando " + lib.length + " imagens");
 	$.mobile.changePage($('#sincronizar'));
-	var qtdImg = offlineImagensLib["gallery"].length;
+	var qtdImg = lib.length;
 	var cont = qtdImg;
 	$('#qtdImagens').html(qtdImg);
-	$('#progressImage').toggle();
+	$('#progressImage').show();
 	$('#feedList').listview('refresh');
 	for (var i = 0; i < qtdImg; i++){
-		var image = offlineImagensLib["gallery"][i];
-		$('#feedList').append("<li><img class='position-left syncPreview' src='data:image/png;base64,"+image.base64+"'/><label class='pull-left paddingFive'><h2><strong>"+image.photo_label+"</strong></h2><span id='photo-"+i+"'></span></label></li><br clear='all'>");
-		if(image.sincronizada == false){
-			var dataE = {"token" : token, "nomeFoto" : image.photo_label , "descricao" : image.millis , "base64code" : image.base64};
+		var image = lib.item(i);
+		console.log("Tentando sincronizar: " + JSON.stringify(image).slice(0,70));
+		$('#feedList').append("<li><img class='position-left syncPreview' src='data:image/png;base64,"+image.base64+"'/><label class='pull-left paddingFive'><h2><strong>"+image.title+"</strong></h2><span id='photo-"+i+"'></span></label></li><br clear='all'>");
+		//if(image.sincronizada == false){
+			var timestamp = Date.parse(image.data).getTime();
+			console.log("Timestamp: " + timestamp);
+			var dataE = {"token" : token, "nomeFoto" : image.title , "descricao" : timestamp , "base64code" : image.base64};
 			$.ajax( {
 				type: "POST",
 				url: urlService + "image/criaImagem",
@@ -940,13 +1009,21 @@ function synchronize(){
 				dataType: "text",
 				async: false,
 				success: function (data){
-					cont--;
-					console.log("IMAGEM " + i + " " + image.photo_label + " sincronizada com sucesso");
+					console.log("imagem uploaded");
+					console.log("IMAGEM " + i + " " + image.title + " sincronizada com sucesso");
 					$('#photo-'+ i).html("<label class='syncSuccess'> Sucesso </label>");
-					offlineImagensLib["gallery"][i].sincronizada = true;
-					if(cont == 0){
-						afterSynchronization(offlineImagensLib);
-					}
+					app.updateSynch(image.ID, data).then(
+						function onFulfilled(){
+							cont--;
+							if(cont == 0){
+								afterSynchronization();
+							}
+						},
+						function onRejected(reason){
+							console.log("Erro ao atualizar foto no banco de dados...");
+						}
+					);
+					
 				},
 				error: function (e) {
 					cont--;
@@ -959,36 +1036,30 @@ function synchronize(){
 					}
 					$('#photo-'+ i).html("<label class='syncError'> Erro: "+ erroText +" </label>");
 					if(cont == 0){
-						afterSynchronization(offlineImagensLib);
+						afterSynchronization();
 					}
 				}
 			});
-		}
-	}
+		//}
+	}//end for
 }
 
-function afterSynchronization(lib){
-	$('#progressImage').toggle();
-	var failedSynch = {
-		"gallery" : []
-	}
-	var hasErrors = false;
-	for (var i = 0; i < lib["gallery"].length; i++){
-		if(lib["gallery"][i].sincronizada == false){
-			hasErrors = true;
-			failedSynch["gallery"].push(lib["gallery"][i]);
-		}
-	}
-	if(hasErrors){
-		$('#errorBtns').toggle();
-		window.localStorage.setItem("offlineLib", JSON.stringify(failedSynch));	
-	}
-	else{
-		$('#homeHiddenBtn').toggle();
-		window.localStorage.removeItem("offlineLib");
-	}
-	
+function afterSynchronization(){
+	$('#progressImage').hide();
+	app.loadOfflineLib().then(
+		function onFulfilled(result){
+			console.log("OfflineLib result = " + JSON.stringify(result));
+			if(result == null){
+				$('#homeHiddenBtn').toggle();
+			}
+			else{
+				$('#errorBtns').toggle();
+			}
+		},
+		function onRejected(reason){
 
+		}	
+	);
 }
 
 
@@ -1004,8 +1075,10 @@ function checkConnection() {
     states[Connection.CELL_4G]  = 'Cell 4G connection';
     states[Connection.CELL]     = 'Cell generic connection';
     states[Connection.NONE]     = 'No network connection';
-
-    alert('Connection type: ' + states[networkState]);
+    //alert('Connection type: ' + states[networkState]);
+    if(networkState == Connection.NONE){
+    	networkStatus = false;
+    }
 }
 
 function turnOffline(){
@@ -1023,24 +1096,26 @@ function turnOffline(){
 		changeToErrorPage(context);
 	}
 	else{
-		//if(networkStatus == true){
+		
+			
+		console.log("Modo offline triggered!!!");
+		if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'login' || networkStatus == false){
 			networkStatus = false;
-			console.log("Modo offline triggered!!!");
-			if ( $('.ui-page-active').attr('id') == 'error' || $('.ui-page-active').attr('id') == 'login') {
-				console.log("indo para home no modo offline");
-				goHome();
+			console.log("indo para home no modo offline");
+			goHome();
+		}
+		else{
+			networkStatus = false;
+			context = {
+				  "error" : "Perda de conexão",
+				  "link" : "#login",
+				  "btn-text": "Login",
+				  "msg" : "Verifique se seu dispositivo está conectado à internet e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve. Você pode utilizar o Modo Offline para tirar suas fotos e poderá enviá-las mais tarde, quando tiver conexão.",
+				  "offline" : true
 			}
-			else{
-				context = {
-					  "error" : "Perda de conexão",
-					  "link" : "#login",
-					  "btn-text": "Login",
-					  "msg" : "Verifique se seu dispositivo está conectado à internet e tente entrar novamente. Se o problema persistir, aguarde que nossos servidores retornarão em breve. Você pode utilizar o Modo Offline para tirar suas fotos e poderá enviá-las mais tarde, quando tiver conexão.",
-					  "offline" : true
-				}
-				changeToErrorPage(context);
-			}
-		//}
+			changeToErrorPage(context);
+		}
+		
 	}
 }
 
@@ -1052,13 +1127,21 @@ function turnOnline(){
 			$.mobile.changePage($('#login'));
 		}
 		else{
-			var offlineImagensLib = JSON.parse(window.localStorage.getItem("offlineLib"));
-			if(offlineImagensLib){
-				synchronize();	
-			}
-			else{
-				goHome();	
-			}
+			app.loadOfflineLib().then(
+				function onFulfilled(result){
+					console.log("OfflineLib result = " + JSON.stringify(result));
+					if(result == null){
+						goHome();
+					}
+					else{
+						synchronize(result);
+					}
+
+				},
+				function onRejected(reason){
+
+				}	
+			);
 		}
 	}
 }
